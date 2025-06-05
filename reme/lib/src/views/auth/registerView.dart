@@ -1,120 +1,107 @@
 import 'package:flutter/material.dart';
 import 'package:reme/src/widgets/customButton.dart';
+import 'package:reme/src/widgets/customTextField.dart';
 
-class RegisterView extends StatefulWidget {
-  const RegisterView({super.key});
+class Registerview extends StatelessWidget {
 
-  @override
-  State<RegisterView> createState() => _RegisterViewState();
-}
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+  TextEditingController confirmPasswordController = TextEditingController();
 
-class _RegisterViewState extends State<RegisterView> {
-  final _formKey = GlobalKey<FormState>();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
 
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
-  }
 
-  void _handleRegister() {
-    if (_formKey.currentState!.validate()) {
-      // TODO: Implement registration logic
-      print('Email: ${_emailController.text}');
-      print('Password: ${_passwordController.text}');
-    }
-  }
 
-  void registerUser() {
-    //show loading indicator
-
-    //make sure passwords match
-
-    //
-  }
+   Registerview({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Register'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
+      backgroundColor: Theme.of(context).colorScheme.background,
+      body: Center(
+        
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              TextFormField(
-                controller: _emailController,
-                decoration: const InputDecoration(
-                  labelText: 'Email',
-                  border: OutlineInputBorder(),
-                ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your email';
-                  }
-                  if (!value.contains('@')) {
-                    return 'Please enter a valid email';
-                  }
-                  return null;
-                },
+              //logo
+          
+              //app name
+              const Text('R E M E ', style: TextStyle(
+                fontSize: 32,
+              )),
+
+              const SizedBox(height: 20),
+
+              // //email
+              Customtextfield(
+                hintText: 'Email',
+                obscureText: false,
+                controller: emailController,
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _passwordController,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                  border: OutlineInputBorder(),
-                ),
+
+             const SizedBox(height: 10),
+          
+          
+              //password
+
+                Customtextfield(
+                hintText: 'Password',
                 obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your password';
-                  }
-                  if (value.length < 6) {
-                    return 'Password must be at least 6 characters';
-                  }
-                  return null;
-                },
+                controller: passwordController,
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _confirmPasswordController,
-                decoration: const InputDecoration(
-                  labelText: 'Confirm Password',
-                  border: OutlineInputBorder(),
-                ),
+
+              const SizedBox(height: 10),
+
+              //confirm password
+                   Customtextfield(
+                hintText: 'Confirm Password',
                 obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please confirm your password';
-                  }
-                  if (value != _passwordController.text) {
-                    return 'Passwords do not match';
-                  }
-                  return null;
-                },
+                controller: confirmPasswordController,
               ),
+          
+              //forgot password
+               Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                 children: [
+                   Text('Forgot Password?',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                      fontSize: 16,
+                    ),),
+                 ],
+               ),
+          
+               const SizedBox(height: 24),
+              //login button
+              Custombutton(text: 'Register', onTap: () {
+
+              }),
+          
+              //don't have an account? Register
               const SizedBox(height: 24),
-           Custombutton(
-              onPressed: _handleRegister,
-              child: const Text('Register'),
-              width: 400,
-              height: 60,
-            ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Already have an account? ',
+                    style: TextStyle(
+                      fontSize: 16,
+                    ),
+                  ),
+                  Text('Login',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.inversePrimary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              )
+
             ],
-          ),
-        ),
+              ),
+        )
       ),
     );
   }
-}
+} 
