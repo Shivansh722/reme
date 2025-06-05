@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "64099197231",
+    "project_id": "reme-57c1b",
+    "storage_bucket": "reme-57c1b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:64099197231:android:807bdbfb32c615d82481da",
+        "android_client_info": {
+          "package_name": "com.example.reme"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "64099197231-3epd1ubjrr6aktj1udonp8h1tt731mkn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9yJyHoz0mFqNYFOd0ssFv0cwSKqUQ7lU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "64099197231-3epd1ubjrr6aktj1udonp8h1tt731mkn.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

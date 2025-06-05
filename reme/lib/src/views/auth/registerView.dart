@@ -101,7 +101,7 @@ class _RegisterViewState extends State<RegisterView> {
               onPressed: _handleRegister,
               child: const Text('Register'),
               width: 400,
-              height: 50,
+              height: 60,
             ),
             ],
           ),
