@@ -7,11 +7,13 @@ class Registerview extends StatelessWidget {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
+  final void Function() onTap;
 
 
 
 
-   Registerview({super.key});
+
+  Registerview({super.key, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -88,11 +90,14 @@ class Registerview extends StatelessWidget {
                       fontSize: 16,
                     ),
                   ),
-                  Text('Login',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                  GestureDetector(
+                    onTap: onTap, 
+                    child: Text('Login',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.inversePrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],

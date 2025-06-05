@@ -6,11 +6,12 @@ class Loginview extends StatelessWidget {
 
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
+  final void Function() onTap;
 
 
 
+   Loginview({super.key, required this.onTap});
 
-   Loginview({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -80,11 +81,14 @@ class Loginview extends StatelessWidget {
                       fontSize: 16,
                     ),
                   ),
-                  Text('Register',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                  GestureDetector(
+                    onTap: onTap, 
+                    child: Text('Register here',
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.inversePrimary,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ],
