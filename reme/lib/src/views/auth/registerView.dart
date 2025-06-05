@@ -30,6 +30,14 @@ class _RegisterViewState extends State<RegisterView> {
     }
   }
 
+  void registerUser() {
+    //show loading indicator
+
+    //make sure passwords match
+
+    //
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -110,4 +118,3 @@ class _RegisterViewState extends State<RegisterView> {
     );
   }
 }
-
