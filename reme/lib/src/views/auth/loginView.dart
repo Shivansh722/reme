@@ -2,18 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:reme/src/widgets/customButton.dart';
 import 'package:reme/src/widgets/customTextField.dart';
 
-class Registerview extends StatelessWidget {
+class Loginview extends StatelessWidget {
 
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-  TextEditingController confirmPasswordController = TextEditingController();
   final void Function() onTap;
 
 
 
+   Loginview({super.key, required this.onTap});
 
-
-  Registerview({super.key, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -54,13 +52,6 @@ class Registerview extends StatelessWidget {
               ),
 
               const SizedBox(height: 10),
-
-              //confirm password
-                   Customtextfield(
-                hintText: 'Confirm Password',
-                obscureText: true,
-                controller: confirmPasswordController,
-              ),
           
               //forgot password
                Row(
@@ -76,7 +67,7 @@ class Registerview extends StatelessWidget {
           
                const SizedBox(height: 24),
               //login button
-              Custombutton(text: 'Register', onTap: () {
+              Custombutton(text: 'Login', onTap: () {
 
               }),
           
@@ -85,14 +76,14 @@ class Registerview extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Already have an account? ',
+                  Text('Don\'t have an account? ',
                     style: TextStyle(
                       fontSize: 16,
                     ),
                   ),
                   GestureDetector(
                     onTap: onTap, 
-                    child: Text('Login',
+                    child: Text('Register here',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.inversePrimary,
                         fontSize: 16,
