@@ -8,7 +8,8 @@ ThemeData lightMode = ThemeData(
     secondary: Colors.grey.shade400, // Secondary color
     background: Colors.grey.shade300, // Background color
     inversePrimary: Colors.grey.shade800, // Inverse primary color
-    onBackground: Colors.black, // Text color on background
+    onBackground: Colors.black, 
+    tertiary: Colors.blue,// Text color on background
   ),
   textTheme: ThemeData.light().textTheme.apply(
     bodyColor: Colors.grey.shade800, // Body text color

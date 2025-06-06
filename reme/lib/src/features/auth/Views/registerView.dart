@@ -1,19 +1,74 @@
 import 'package:flutter/material.dart';
+import 'package:reme/src/helpers/helper_functions.dart';
 import 'package:reme/src/widgets/customButton.dart';
 import 'package:reme/src/widgets/customTextField.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
 
-class Registerview extends StatelessWidget {
+class Registerview extends StatefulWidget {
 
+  // Callback function to handle tap events
+  final void Function()? onTap;
+
+  const Registerview({super.key, required this.onTap});
+
+  @override
+  State<Registerview> createState() => _RegisterviewState();
+}
+
+class _RegisterviewState extends State<Registerview> {
+  //text controllers
   TextEditingController emailController = TextEditingController();
+
   TextEditingController passwordController = TextEditingController();
+
   TextEditingController confirmPasswordController = TextEditingController();
-  final void Function() onTap;
 
+  TextEditingController userNameController = TextEditingController();
 
+  //registerMethod
+  void registerUser() async { // Added async here
 
+    //show loading indicator
+    showDialog(
+      context: context,
+      builder: (context) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    });
 
+    //if pasword don't match, show error message
+    if(passwordController.text != confirmPasswordController.text) {
 
-  Registerview({super.key, required this.onTap});
+      //hide loading indicator
+      Navigator.pop(context);
+
+      //show error message using our helper function
+      showErrorMessage(context, 'Passwords do not match');
+      return;
+    } 
+
+    //try creating the user
+    else {
+      try  {
+        //create user
+        UserCredential? userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: emailController.text,
+          password: passwordController.text,
+        );
+      
+          //pop loading circle
+        if (context.mounted) Navigator.pop(context); // Added context.mounted check
+      } on FirebaseAuthException catch (e) { // Corrected typo
+      
+        //hide loading indicator
+        if (context.mounted) Navigator.pop(context); // Added context.mounted check
+      
+        //show error message using our helper function
+        if (context.mounted) showErrorMessage(context, e.message.toString()); // Added context.mounted check
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,11 +84,21 @@ class Registerview extends StatelessWidget {
               //logo
           
               //app name
-              const Text('R E M E ', style: TextStyle(
+              const Text('R E: M E ', style: TextStyle(
                 fontSize: 32,
               )),
 
               const SizedBox(height: 20),
+
+
+              //username
+              Customtextfield(
+                hintText: 'Username',
+                obscureText: false,
+                controller: userNameController,
+              ),
+
+              const SizedBox(height: 10),
 
               // //email
               Customtextfield(
@@ -76,9 +141,7 @@ class Registerview extends StatelessWidget {
           
                const SizedBox(height: 24),
               //login button
-              Custombutton(text: 'Register', onTap: () {
-
-              }),
+              Custombutton(text: 'Register', onTap: registerUser),
           
               //don't have an account? Register
               const SizedBox(height: 24),
@@ -91,10 +154,10 @@ class Registerview extends StatelessWidget {
                     ),
                   ),
                   GestureDetector(
-                    onTap: onTap, 
+                    onTap: widget.onTap, 
                     child: Text('Login',
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.inversePrimary,
+                        color: Theme.of(context).colorScheme.tertiary,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
@@ -109,4 +172,4 @@ class Registerview extends StatelessWidget {
       ),
     );
   }
-} 
+}
