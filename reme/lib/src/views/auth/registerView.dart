@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:reme/src/helpers/helper_functions.dart';
 import 'package:reme/src/widgets/customButton.dart';
 import 'package:reme/src/widgets/customTextField.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
 
 class Registerview extends StatefulWidget {
 
@@ -25,7 +26,7 @@ class _RegisterviewState extends State<Registerview> {
   TextEditingController userNameController = TextEditingController();
 
   //registerMethod
-  void registerUser() {
+  void registerUser() async { // Added async here
 
     //show loading indicator
     showDialog(
@@ -36,7 +37,7 @@ class _RegisterviewState extends State<Registerview> {
       );
     });
 
-    //make sure passwords match
+    //if pasword don't match, show error message
     if(passwordController.text != confirmPasswordController.text) {
 
       //hide loading indicator
@@ -45,15 +46,28 @@ class _RegisterviewState extends State<Registerview> {
       //show error message using our helper function
       showErrorMessage(context, 'Passwords do not match');
       return;
-
-       //try creating the user
-       
-     
     } 
 
-   
-    
-
+    //try creating the user
+    else {
+      try  {
+        //create user
+        UserCredential? userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: emailController.text,
+          password: passwordController.text,
+        );
+      
+          //pop loading circle
+        if (context.mounted) Navigator.pop(context); // Added context.mounted check
+      } on FirebaseAuthException catch (e) { // Corrected typo
+      
+        //hide loading indicator
+        if (context.mounted) Navigator.pop(context); // Added context.mounted check
+      
+        //show error message using our helper function
+        if (context.mounted) showErrorMessage(context, e.message.toString()); // Added context.mounted check
+      }
+    }
   }
 
   @override
@@ -127,9 +141,7 @@ class _RegisterviewState extends State<Registerview> {
           
                const SizedBox(height: 24),
               //login button
-              Custombutton(text: 'Register', onTap: () {
-
-              }),
+              Custombutton(text: 'Register', onTap: registerUser),
           
               //don't have an account? Register
               const SizedBox(height: 24),
@@ -160,4 +172,4 @@ class _RegisterviewState extends State<Registerview> {
       ),
     );
   }
-} 
+}
