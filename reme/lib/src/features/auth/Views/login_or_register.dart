@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:reme/src/views/auth/loginView.dart';
-import 'package:reme/src/views/auth/registerView.dart';
+import 'package:reme/src/features/auth/Views/loginView.dart';
+import 'package:reme/src/features/auth/Views/registerView.dart';
 
 class LoginOrRegister extends StatefulWidget {
   const LoginOrRegister({super.key});

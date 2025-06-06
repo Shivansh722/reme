@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:reme/src/features/auth/services/authService.dart';
 import 'package:reme/src/helpers/helper_functions.dart';
 import 'package:reme/src/widgets/customButton.dart';
 import 'package:reme/src/widgets/customTextField.dart';
@@ -145,12 +146,15 @@ class _LoginviewState extends State<Loginview> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       //google button
-                      Squaretile(imagePath: 'lib/assets/images/google_logo.png'),
+                      Squaretile(
+                        imagePath: 'lib/assets/images/google_logo.png',
+                        onTap: () => Authservice().signInWithGoogle(),
+                         ),
                     
                       const SizedBox(width: 25),
 
                       // LINE button
-                      Squaretile(imagePath: 'lib/assets/images/line_logo.png'),
+                      Squaretile(imagePath: 'lib/assets/images/line_logo.png', onTap: () => Authservice().signInWithLine(),), 
                     ],
                   ),
                 ],

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:reme/core/theme/light_mode.dart';
-import 'package:reme/src/views/auth/authGate.dart';
-import 'package:reme/src/views/auth/loginView.dart';
-import 'package:reme/src/views/auth/login_or_register.dart';
-import 'package:reme/src/views/auth/registerView.dart';
+import 'package:reme/src/features/auth/Views/authGate.dart';
+import 'package:reme/src/features/auth/Views/loginView.dart';
+import 'package:reme/src/features/auth/Views/login_or_register.dart';
+import 'package:reme/src/features/auth/Views/registerView.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
