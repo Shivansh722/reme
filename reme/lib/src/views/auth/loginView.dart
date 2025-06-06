@@ -2,16 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:reme/src/widgets/customButton.dart';
 import 'package:reme/src/widgets/customTextField.dart';
 
-class Loginview extends StatelessWidget {
+class Loginview extends StatefulWidget {
 
-  TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
+  // Callback function to handle tap events
   final void Function() onTap;
 
+  const Loginview({super.key, required this.onTap});
 
+  @override
+  State<Loginview> createState() => _LoginviewState();
+}
 
-   Loginview({super.key, required this.onTap});
+class _LoginviewState extends State<Loginview> {
+  //text controllers
+  TextEditingController emailController = TextEditingController();
 
+  TextEditingController passwordController = TextEditingController();
+
+  //login method
+  void login() async {
+    
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -82,7 +93,7 @@ class Loginview extends StatelessWidget {
                     ),
                   ),
                   GestureDetector(
-                    onTap: onTap, 
+                    onTap: widget.onTap, 
                     child: Text('Register here',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.inversePrimary,
