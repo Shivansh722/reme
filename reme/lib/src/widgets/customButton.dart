@@ -20,7 +20,7 @@ class Custombutton extends StatelessWidget {
 
 
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.secondary,
+          color: Theme.of(context).colorScheme.primary,
           borderRadius: BorderRadius.circular(24),
         ),
         padding: const EdgeInsets.all(24),
@@ -28,7 +28,7 @@ class Custombutton extends StatelessWidget {
           child: Text(
             text,
             style: TextStyle(
-              color: Theme.of(context).colorScheme.onPrimary,
+              color: Theme.of(context).colorScheme.inversePrimary,
               fontSize: 18,
              
             ),

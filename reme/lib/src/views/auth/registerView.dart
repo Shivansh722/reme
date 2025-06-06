@@ -1,19 +1,60 @@
 import 'package:flutter/material.dart';
+import 'package:reme/src/helpers/helper_functions.dart';
 import 'package:reme/src/widgets/customButton.dart';
 import 'package:reme/src/widgets/customTextField.dart';
 
-class Registerview extends StatelessWidget {
+class Registerview extends StatefulWidget {
 
+  // Callback function to handle tap events
+  final void Function()? onTap;
+
+  const Registerview({super.key, required this.onTap});
+
+  @override
+  State<Registerview> createState() => _RegisterviewState();
+}
+
+class _RegisterviewState extends State<Registerview> {
+  //text controllers
   TextEditingController emailController = TextEditingController();
+
   TextEditingController passwordController = TextEditingController();
+
   TextEditingController confirmPasswordController = TextEditingController();
-  final void Function() onTap;
 
+  TextEditingController userNameController = TextEditingController();
 
+  //registerMethod
+  void registerUser() {
 
+    //show loading indicator
+    showDialog(
+      context: context,
+      builder: (context) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    });
 
+    //make sure passwords match
+    if(passwordController.text != confirmPasswordController.text) {
 
-  Registerview({super.key, required this.onTap});
+      //hide loading indicator
+      Navigator.pop(context);
+
+      //show error message using our helper function
+      showErrorMessage(context, 'Passwords do not match');
+      return;
+
+       //try creating the user
+       
+     
+    } 
+
+   
+    
+
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,11 +70,21 @@ class Registerview extends StatelessWidget {
               //logo
           
               //app name
-              const Text('R E M E ', style: TextStyle(
+              const Text('R E: M E ', style: TextStyle(
                 fontSize: 32,
               )),
 
               const SizedBox(height: 20),
+
+
+              //username
+              Customtextfield(
+                hintText: 'Username',
+                obscureText: false,
+                controller: userNameController,
+              ),
+
+              const SizedBox(height: 10),
 
               // //email
               Customtextfield(
@@ -91,7 +142,7 @@ class Registerview extends StatelessWidget {
                     ),
                   ),
                   GestureDetector(
-                    onTap: onTap, 
+                    onTap: widget.onTap, 
                     child: Text('Login',
                       style: TextStyle(
                         color: Theme.of(context).colorScheme.inversePrimary,

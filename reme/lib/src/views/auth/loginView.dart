@@ -27,7 +27,7 @@ class Loginview extends StatelessWidget {
               //logo
           
               //app name
-              const Text('R E M E ', style: TextStyle(
+              const Text('R E: M E ', style: TextStyle(
                 fontSize: 32,
               )),
 
