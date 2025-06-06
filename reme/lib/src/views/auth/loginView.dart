@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:reme/src/helpers/helper_functions.dart';
 import 'package:reme/src/widgets/customButton.dart';
 import 'package:reme/src/widgets/customTextField.dart';
+import 'package:reme/src/widgets/squareTile.dart';
 
 class Loginview extends StatefulWidget {
 
@@ -58,87 +59,133 @@ class _LoginviewState extends State<Loginview> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
-      body: Center(
-        
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              //logo
-          
-              //app name
-              const Text('R E: M E ', style: TextStyle(
-                fontSize: 32,
-              )),
-
-              const SizedBox(height: 20),
-
-              // //email
-              Customtextfield(
-                hintText: 'Email',
-                obscureText: false,
-                controller: emailController,
-              ),
-
-             const SizedBox(height: 10),
-          
-          
-              //password
-
-                Customtextfield(
-                hintText: 'Password',
-                obscureText: true,
-                controller: passwordController,
-              ),
-
-              const SizedBox(height: 10),
-          
-              //forgot password
-               Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                 children: [
-                   Text('Forgot Password?',
-                    style: TextStyle(
-                      color: Theme.of(context).colorScheme.inversePrimary,
-                      fontSize: 16,
-                    ),),
-                 ],
-               ),
-          
-               const SizedBox(height: 24),
-              //login button
-              Custombutton(text: 'Login', onTap: () {
-
-              }),
-          
-              //don't have an account? Register
-              const SizedBox(height: 24),
-              Row(
+      body: Stack(
+        children: [
+          // Main content
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text('Don\'t have an account? ',
-                    style: TextStyle(
-                      fontSize: 16,
-                    ),
+                  //logo
+                
+                  //app name
+                  const Text('R E: M E ', style: TextStyle(
+                    fontSize: 32,
+                  )),
+
+                  const SizedBox(height: 20),
+
+                  // //email
+                  Customtextfield(
+                    hintText: 'Email',
+                    obscureText: false,
+                    controller: emailController,
                   ),
-                  GestureDetector(
-                    onTap: widget.onTap, 
-                    child: Text('Register here',
-                      style: TextStyle(
+
+                  const SizedBox(height: 10),
+              
+              
+                  //password
+                  Customtextfield(
+                    hintText: 'Password',
+                    obscureText: true,
+                    controller: passwordController,
+                  ),
+
+                  const SizedBox(height: 10),
+              
+                  //forgot password
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Text('Forgot Password?',
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.inversePrimary,
+                          fontSize: 16,
+                        ),),
+                    ],
+                  ),
+              
+                  const SizedBox(height: 24),
+                  //login button
+                  Custombutton(text: 'Login', onTap: login),
+              
+                  const SizedBox(height: 40),
+
+                  //divider with or sign in with google
+                  Row(children: [
+                    //two dividers
+                    Expanded
+                      (child: Divider(
                         color: Theme.of(context).colorScheme.inversePrimary,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                        thickness: 0.5,
+                        )),
+
+                    const SizedBox(width: 10),
+
+                    const Text('Or continue with', style: TextStyle(
+                      fontSize: 16,
+                    )),
+
+                    const SizedBox(width: 10),
+
+                    Expanded
+                      (child: Divider(
+                        color: Theme.of(context).colorScheme.inversePrimary,
+                        thickness: 0.5,
+                      )),
+                  ],),
+
+                  const SizedBox(height: 40),
+                 
+                  //sign in with google button or LINE buttons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      //google button
+                      Squaretile(imagePath: 'lib/assets/images/google_logo.png'),
+                    
+                      const SizedBox(width: 25),
+
+                      // LINE button
+                      Squaretile(imagePath: 'lib/assets/images/line_logo.png'),
+                    ],
                   ),
                 ],
-              )
-
-            ],
               ),
-        )
+            ),
+          ),
+          
+          // Registration link at bottom
+          Positioned(
+            left: 0,
+            right: 0,
+            bottom: 80,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Don\'t have an account? ',
+                  style: TextStyle(
+                    fontSize: 16,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: widget.onTap, 
+                  child: Text('Register here',
+                    style: TextStyle(
+                      color: Theme.of(context).colorScheme.tertiary,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
-} 
+}

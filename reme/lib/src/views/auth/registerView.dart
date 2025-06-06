@@ -157,7 +157,7 @@ class _RegisterviewState extends State<Registerview> {
                     onTap: widget.onTap, 
                     child: Text('Login',
                       style: TextStyle(
-                        color: Theme.of(context).colorScheme.inversePrimary,
+                        color: Theme.of(context).colorScheme.tertiary,
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
