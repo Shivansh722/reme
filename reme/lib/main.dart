@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:reme/core/theme/light_mode.dart';
+import 'package:reme/src/views/auth/authGate.dart';
 import 'package:reme/src/views/auth/loginView.dart';
 import 'package:reme/src/views/auth/login_or_register.dart';
 import 'package:reme/src/views/auth/registerView.dart';
@@ -24,7 +25,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false, 
       title: 'Flutter Demo',
       theme:lightMode,
-      home:  LoginOrRegister(),
+      home:  Authgate(),
     );
   }
 }

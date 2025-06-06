@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:reme/src/helpers/helper_functions.dart';
 import 'package:reme/src/widgets/customButton.dart';
 import 'package:reme/src/widgets/customTextField.dart';
 
@@ -22,6 +24,34 @@ class _LoginviewState extends State<Loginview> {
   //login method
   void login() async {
     
+    //show loading indicator
+    showDialog(
+      context: context,
+      builder: (context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      }
+    );
+
+    //try logging in the user
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text,
+        password: passwordController.text,
+      );
+
+      //pop loading circle
+      Navigator.pop(context); 
+  }
+  //display if any errors
+  on FirebaseAuthException catch (e) { 
+      //hide loading indicator
+      Navigator.pop(context);
+
+      //show error message using our helper function
+      showErrorMessage(context, e.code);
+    }
   }
 
   @override
