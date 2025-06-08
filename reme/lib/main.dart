@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_line_sdk/flutter_line_sdk.dart';
 import 'package:reme/core/theme/light_mode.dart';
 import 'package:reme/src/features/auth/Views/authGate.dart';
 import 'package:reme/src/features/auth/Views/loginView.dart';
@@ -9,6 +10,9 @@ import 'firebase_options.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  LineSDK.instance.setup("${2007541783}").then((_) {
+    print("LineSDK Prepared");
+ });
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
