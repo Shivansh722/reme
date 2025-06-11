@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_line_sdk/flutter_line_sdk.dart';
 import 'package:reme/src/features/auth/services/authService.dart';
 import 'package:reme/src/helpers/helper_functions.dart';
 import 'package:reme/src/widgets/customButton.dart';
@@ -75,11 +76,13 @@ class _LoginviewState extends State<Loginview> {
 
     try {
       print("Calling LINE SDK login method...");
-      final result = await _authService.signInWithLine();
+      final result = await LineSDK.instance.login();
       print("LINE SDK login completed successfully");
       
       // Pop loading circle
-      if (context.mounted) Navigator.pop(context);
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
       
       // Get user details if needed
       final userId = result.userProfile?.userId;

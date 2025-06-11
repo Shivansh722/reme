@@ -26,14 +26,25 @@ class Authservice {
 
   Future<LoginResult> signInWithLine() async {
     try {
+      print("Starting LINE SDK login method in service...");
+      print("Expected redirect URI: line3rdp.com.example.reme://auth");
+      print("Scopes requested: profile, openid, email");
+      
       final result = await LineSDK.instance.login(
         scopes: ["profile", "openid", "email"]
       );
-      // user id -> result.userProfile?.userId
-      // user name -> result.userProfile?.displayName
-      // user avatar -> result.userProfile?.pictureUrl
+      
+      print("LINE SDK login successful in service");
+      print("User ID: ${result.userProfile?.userId}");
+      print("Display Name: ${result.userProfile?.displayName}");
+      
       return result;
     } on PlatformException catch (e) {
+      print("LINE SDK PlatformException: ${e.code} - ${e.message}");
+      print("LINE SDK PlatformEx  ception details: ${e.details}");
+      throw e.toString();
+    } catch (e) {
+      print("LINE SDK unexpected error: $e");
       throw e.toString();
     }
   }
