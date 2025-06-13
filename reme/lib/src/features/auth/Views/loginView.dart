@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_line_sdk/flutter_line_sdk.dart';
 import 'package:reme/src/features/auth/services/authService.dart';
+import 'package:reme/src/features/diagnosis/views/diagnosisView.dart';
 import 'package:reme/src/helpers/helper_functions.dart';
 import 'package:reme/src/widgets/customButton.dart';
 import 'package:reme/src/widgets/customTextField.dart';
@@ -26,6 +27,8 @@ class _LoginviewState extends State<Loginview> {
   
   // Create an instance of the auth service
   final Authservice _authService = Authservice();
+
+  
 
   //login method
   void login() async {
@@ -116,6 +119,33 @@ class _LoginviewState extends State<Loginview> {
     }
   }
 
+  void startDiagnosis() async {
+    // Show loading indicator
+    showDialog(
+      context: context,
+      builder: (context) {
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      }
+    );
+
+    // Hide loading indicator
+    if (context.mounted) {
+      Navigator.pop(context);
+    }
+
+    // Navigate to the diagnosis screen
+    if (context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const DiagnosisView(),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -173,8 +203,12 @@ class _LoginviewState extends State<Loginview> {
                   //login button
                   Custombutton(text: 'Login', onTap: login),
               
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 10),
+
+                  Custombutton(text: 'Start Diagnosis', onTap: startDiagnosis),
                   
+                  const SizedBox(height: 24),
+
                   // Text divider
                   Row(
                     children: [
