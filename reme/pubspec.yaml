@@ -38,6 +38,8 @@ dependencies:
   firebase_auth: ^5.5.4
   google_sign_in: ^6.3.0
   flutter_line_sdk: ^2.5.2
+  permission_handler: ^12.0.0+1
+  image_picker: ^1.1.2
 
 dev_dependencies:
   flutter_test:
