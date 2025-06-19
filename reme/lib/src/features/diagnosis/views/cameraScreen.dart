@@ -8,6 +8,7 @@ import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:image/image.dart' as img;
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class CameraScreen extends StatefulWidget {
   const CameraScreen({super.key});
@@ -22,10 +23,6 @@ class _CameraScreenState extends State<CameraScreen> {
   final ImagePicker _picker = ImagePicker();
   bool _isProcessing = false;
   String? _analysisResult;
-
-  // API key for Gemini Vision API
-  // In production, this should be stored securely
-  static const String _apiKey = 'YOUR_GEMINI_API_KEY';
 
   Future<void> _requestPermissions() async {
     Map<Permission, PermissionStatus> statuses = await [
@@ -227,12 +224,33 @@ class _CameraScreenState extends State<CameraScreen> {
   }
 
   String _encodeImageToBase64(File imageFile) {
+    // Compress the image to reduce size before encoding
     final bytes = imageFile.readAsBytesSync();
-    return base64Encode(bytes);
+    final image = img.decodeImage(bytes);
+    
+    // Resize if needed - Gemini has size limitations
+    final resized = img.copyResize(
+      image!, 
+      width: 800, // Set appropriate size based on Gemini requirements
+    );
+    
+    final compressedBytes = img.encodeJpg(resized, quality: 85);
+    return base64Encode(compressedBytes);
   }
 
   Future<String> _analyzeSkinWithGemini(String base64Image) async {
-    const url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=$_apiKey';
+    // Get API key from .env file
+    final apiKey = dotenv.env['GEMINI_API_KEY'];
+    
+    // Debug print to verify API key is loaded
+    print('API Key loaded: ${apiKey != null ? 'Yes' : 'No'}');
+    
+    if (apiKey == null || apiKey.isEmpty) {
+      return 'Error: API key not found. Please check your environment configuration.';
+    }
+    
+    // Use the correct model name for Gemini 1.5 Pro
+    final url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$apiKey';
 
     const prompt = "Analyze this face's skin. Provide a detailed assessment including: "
         "1. Visible pimples or acne (location and severity) "
@@ -258,15 +276,52 @@ class _CameraScreenState extends State<CameraScreen> {
               }
             ]
           }
-        ]
+        ],
+        "generation_config": {
+          "temperature": 0.4,
+          "top_p": 0.95,
+          "max_output_tokens": 1024,
+        },
       }),
     );
 
     if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
-      return result['candidates'][0]['content']['parts'][0]['text'];
+      // Check if the response structure is as expected
+      if (result.containsKey('candidates') && 
+          result['candidates'].isNotEmpty && 
+          result['candidates'][0].containsKey('content')) {
+        return result['candidates'][0]['content']['parts'][0]['text'];
+      } else {
+        // Handle unexpected response structure
+        print('Unexpected response structure: ${response.body}');
+        return 'Unable to analyze skin. Please try again.';
+      }
+    } else if (response.statusCode == 400) {
+      // Handle model-specific errors
+      final error = jsonDecode(response.body);
+      print('Model error: ${error.toString()}');
+      
+      // Check for specific error types
+      if (error['error'] != null && error['error']['message'] != null) {
+        final errorMessage = error['error']['message'];
+        if (errorMessage.contains('API_KEY_INVALID')) {
+          return 'Authentication error: Invalid API key. Please check your configuration.';
+        } else if (errorMessage.contains('quota')) {
+          return 'API quota exceeded. Please try again later.';
+        }
+      }
+      
+      return 'Skin analysis failed: The model encountered an error. Please try again.';
+    } else if (response.statusCode == 429) {
+      // Handle rate limiting errors
+      final error = jsonDecode(response.body);
+      print('Rate limit error: ${error.toString()}');
+      return 'API rate limit exceeded. Please try again in a few minutes or contact support to upgrade your plan.';
     } else {
-      throw Exception('Failed to analyze skin: ${response.body}');
+      // Handle other HTTP errors
+      print('HTTP error: ${response.statusCode}, Body: ${response.body}');
+      return 'Failed to connect to the analysis service. Please check your internet connection.';
     }
   }
 
