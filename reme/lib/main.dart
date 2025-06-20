@@ -6,6 +6,7 @@ import 'package:reme/src/features/auth/Views/loginView.dart';
 import 'package:reme/src/features/auth/Views/login_or_register.dart';
 import 'package:reme/src/features/auth/Views/registerView.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:reme/src/features/home/homeView_main.dart';
 import 'firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -33,7 +34,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false, 
       title: 'Flutter Demo',
       theme:lightMode,
-      home:  Authgate(),
+      home:  HomeviewMain(),
+      //keep here authgate later
     );
   }
 }
