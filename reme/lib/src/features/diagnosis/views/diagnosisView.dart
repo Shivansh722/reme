@@ -19,21 +19,30 @@ class DiagnosisView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
-      appBar: AppBar(
-        title: const Text('Diagnosis'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+     
       body: Stack(
         children: [
           Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
+
+                //text
+                const Text(
+                  '              顔写真を\nアップロードしてください',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+
+                const SizedBox(height: 40),
+
+                //image
                 Image.asset(
                   'lib/assets/images/img.png',
-                  width: 200,
-                  height: 200,
+                  width: 150,
+                  height: 150,
                 ),
                 const SizedBox(height: 60),
               ],
@@ -47,7 +56,7 @@ class DiagnosisView extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Custombutton(
-                  text: 'Start Diagnosis',
+                  text: '撮影をはじめる',
                   onTap: () => cameraDiagnosis(context),
                 ),
               ),

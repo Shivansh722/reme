@@ -7,6 +7,7 @@ import 'package:reme/src/features/auth/Views/login_or_register.dart';
 import 'package:reme/src/features/auth/Views/registerView.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:reme/src/features/home/views/homeView_main.dart';
+import 'package:reme/src/features/splashView.dart'; // Add this import
 import 'firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -33,9 +34,8 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false, 
       title: 'Flutter Demo',
-      theme:lightMode,
-      home:  Authgate(),
-      //keep here authgate later
+      theme: lightMode,
+      home: const Splashview(), // Change this to Splashview
     );
   }
 }
