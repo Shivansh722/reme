@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:reme/src/features/auth/Views/login_or_register.dart';
 import 'package:reme/src/features/home/views/homeView.dart';
-import 'package:reme/src/features/home/views/homeView_main.dart';
+import 'package:reme/src/features/home/views/homeView.dart';
 
 
 class Authgate extends StatelessWidget {
