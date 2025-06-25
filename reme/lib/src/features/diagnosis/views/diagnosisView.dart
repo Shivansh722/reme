@@ -60,14 +60,14 @@ class _DiagnosisViewState extends State<DiagnosisView> {
               Navigator.pop(context);
               _getImage(ImageSource.camera);
             },
-            child: const Text('Take Photo'),
+            child: const Text('Take Photo', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),),
           ),
           CupertinoActionSheetAction(
             onPressed: () {
               Navigator.pop(context);
               _getImage(ImageSource.gallery);
             },
-            child: const Text('Choose from Library'),
+            child: const Text('Choose from Library', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),),
           ),
         ],
         cancelButton: CupertinoActionSheetAction(
@@ -75,7 +75,7 @@ class _DiagnosisViewState extends State<DiagnosisView> {
           onPressed: () {
             Navigator.pop(context);
           },
-          child: const Text('Cancel'),
+          child: const Text('Cancel', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),),
         ),
       ),
     );
