@@ -2,9 +2,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:reme/src/features/diagnosis/views/custom_camera_screen.dart';
 import 'package:reme/src/widgets/customButton.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:reme/src/features/diagnosis/services/face_analysis_service.dart';
+
 
 class DiagnosisView extends StatefulWidget {
   const DiagnosisView({super.key});
@@ -124,25 +126,53 @@ class _DiagnosisViewState extends State<DiagnosisView> {
     await _requestPermissions();
     
     try {
-      final XFile? image = await _picker.pickImage(source: source);
-      if (image != null) {
-        // Navigate to a processing screen or show a loading indicator
-        setState(() {
-          _isProcessing = true;
-        });
-        
-        // Pass the selected image to be processed using a new screen
+      if (source == ImageSource.camera) {
+        // Navigate to custom camera screen
         if (mounted) {
-          Navigator.of(context).push(
+          final File? capturedImage = await Navigator.of(context).push(
             MaterialPageRoute(
-              builder: (context) => _ImageProcessingScreen(imageFile: File(image.path)),
+              builder: (context) => const CustomCameraScreen(),
             ),
           );
+          
+          if (capturedImage != null) {
+            setState(() {
+              _isProcessing = true;
+            });
+            
+            if (mounted) {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => _ImageProcessingScreen(imageFile: capturedImage),
+                ),
+              );
+            }
+            
+            setState(() {
+              _isProcessing = false;
+            });
+          }
         }
-        
-        setState(() {
-          _isProcessing = false;
-        });
+      } else {
+        // Use image_picker for gallery
+        final XFile? image = await _picker.pickImage(source: source);
+        if (image != null) {
+          setState(() {
+            _isProcessing = true;
+          });
+          
+          if (mounted) {
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => _ImageProcessingScreen(imageFile: File(image.path)),
+              ),
+            );
+          }
+          
+          setState(() {
+            _isProcessing = false;
+          });
+        }
       }
     } catch (e) {
       if (mounted) {
