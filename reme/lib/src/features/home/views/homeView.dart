@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:reme/src/features/home/widgets/recommendedCard.dart';
 import 'package:reme/src/features/shared/Widgets/bottom_nav_bar.dart';
+import 'package:reme/src/features/diagnosis/views/custom_camera_screen.dart';
+import 'package:reme/src/features/chat/views/chatView.dart';
+import 'package:reme/src/features/profile/view/profileView.dart'; // Add this import
 
 class HomeviewMain extends StatefulWidget {
   const HomeviewMain({super.key});
@@ -32,13 +35,13 @@ class _HomeviewMainState extends State<HomeviewMain> {
       case 0:
         return DiagnosisScreen();
       case 1:
-        return Center(child: Text("Camera Screen"));
+        return CustomCameraScreen();
       case 2:
-        return Center(child: Text("Chat Screen"));
+        return const ChatScreen();
       case 3:
         return Center(child: Text("Chart Screen"));
       case 4:
-        return Center(child: Text("Profile Screen"));
+        return const MyPageScreen(); // Replace with your profile screen
       default:
         return DiagnosisScreen();
     }
