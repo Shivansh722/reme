@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:reme/src/features/diagnosis/views/custom_camera_screen.dart';
+import 'package:reme/src/features/diagnosis/views/diagnosisChatScreen.dart';
 import 'package:reme/src/widgets/customButton.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:reme/src/features/diagnosis/services/face_analysis_service.dart';
 import 'package:reme/src/features/shared/radiusChart.dart';
 import 'package:reme/src/features/diagnosis/views/analysisResultsScreen.dart';
+
 
 
 class DiagnosisView extends StatefulWidget {
@@ -130,59 +132,38 @@ class _DiagnosisViewState extends State<DiagnosisView> {
     
     try {
       if (source == ImageSource.camera) {
-        // Navigate to custom camera screen
         if (mounted) {
-          final File? capturedImage = await Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => const CustomCameraScreen(),
-            ),
+          final result = await Navigator.push<File>(
+            context,
+            MaterialPageRoute(builder: (context) => const CustomCameraScreen()),
           );
-          
-          if (capturedImage != null) {
-            setState(() {
-              _isProcessing = true;
-            });
-            
-            if (mounted) {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => _ImageProcessingScreen(imageFile: capturedImage),
-                ),
-              );
-            }
-            
-            setState(() {
-              _isProcessing = false;
-            });
+          if (result != null) {
+            // Navigate to chat screen for both camera and gallery
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => DiagnosisChatScreen(faceImage: result),
+              ),
+            );
           }
         }
       } else {
         // Use image_picker for gallery
         final XFile? image = await _picker.pickImage(source: source);
         if (image != null) {
-          setState(() {
-            _isProcessing = true;
-          });
-          
-          if (mounted) {
-            Navigator.of(context).push(
-              MaterialPageRoute(
-                builder: (context) => _ImageProcessingScreen(imageFile: File(image.path)),
-              ),
-            );
-          }
-          
-          setState(() {
-            _isProcessing = false;
-          });
+          // Navigate to chat screen for both camera and gallery
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DiagnosisChatScreen(faceImage: File(image.path)),
+            ),
+          );
         }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error selecting image: ${e.toString()}'),
-          ),
+          SnackBar(content: Text('Error getting image: $e')),
         );
       }
     }

@@ -366,11 +366,13 @@ bool _calculateBrightness(Uint8List bytes, int width, int height) {
       
       if (!mounted) return;
       
-      // Navigate to ChatScreen with the captured image
-      Navigator.push(
+      // Navigate to DiagnosisChatScreen with the captured image
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => DiagnosisChatScreen(faceImage: File(image.path)),
+          builder: (context) => DiagnosisChatScreen(
+            faceImage: File(image.path),
+          ),
         ),
       );
     } catch (e) {

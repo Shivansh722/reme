@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:reme/src/features/chat/views/chatView.dart';
 import 'package:reme/src/features/diagnosis/views/analysisResultsScreen.dart';
+import 'package:reme/src/features/diagnosis/services/face_analysis_service.dart';
+import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
 class DiagnosisChatScreen extends StatefulWidget {
   final File faceImage;
@@ -60,8 +62,12 @@ class _DiagnosisChatScreenState extends State<DiagnosisChatScreen> {
   
   int _currentQuestionIndex = 0;
   bool _analysisComplete = false;
+  bool _isAnalyzing = false;
+  String? _geminiAnalysisResult; // Store the actual Gemini result
+  File? _croppedFaceImage;
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  final FaceAnalysisService _analysisService = FaceAnalysisService();
   
   @override
   void initState() {
@@ -69,10 +75,42 @@ class _DiagnosisChatScreenState extends State<DiagnosisChatScreen> {
     // Add welcome message
     _addAiMessage('Hi there! I\'m analyzing the image of your skin...');
     
+    // Start the actual Gemini analysis in the background
+    _performGeminiAnalysis();
+    
     // Add first question after a short delay
     Future.delayed(const Duration(seconds: 1), () {
       _addAiMessage(_questions[_currentQuestionIndex]['question']);
     });
+  }
+
+  // Perform the actual Gemini analysis
+  Future<void> _performGeminiAnalysis() async {
+    try {
+      // Detect face and crop
+      final face = await _analysisService.detectFace(widget.faceImage);
+      
+      if (face != null) {
+        _croppedFaceImage = await _analysisService.cropFaceRegion(widget.faceImage, face);
+      }
+      
+      // Encode image to base64
+      final base64Image = _analysisService.encodeImageToBase64(_croppedFaceImage ?? widget.faceImage);
+      
+      // Get Gemini analysis
+      final result = await _analysisService.analyzeSkinWithGemini(base64Image);
+      
+      setState(() {
+        _geminiAnalysisResult = result;
+      });
+      
+      print('Gemini analysis completed: $_geminiAnalysisResult');
+    } catch (e) {
+      print('Error during Gemini analysis: $e');
+      setState(() {
+        _geminiAnalysisResult = 'Error analyzing skin: $e';
+      });
+    }
   }
   
   void _addAiMessage(String message) {
@@ -177,50 +215,61 @@ class _DiagnosisChatScreenState extends State<DiagnosisChatScreen> {
   void _completeAnalysis() {
     setState(() {
       _analysisComplete = true;
+      _isAnalyzing = true;
     });
     
-    _addAiMessage("Thank you for providing this information. I'm analyzing your skin now based on your photo and responses...");
+    _addAiMessage("Thank you for providing this information. I'm finalizing your skin analysis now...");
     
-    // Simulate analysis delay
-    Future.delayed(const Duration(seconds: 2), () {
+    // Wait for Gemini analysis to complete if it's still running
+    _waitForAnalysisAndNavigate();
+  }
+  
+  Future<void> _waitForAnalysisAndNavigate() async {
+    // Wait for Gemini analysis to complete
+    while (_geminiAnalysisResult == null) {
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
+    
+    // Small delay for better UX
+    await Future.delayed(const Duration(seconds: 1));
+    
+    if (mounted) {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => AnalysisResultsScreen(
-            faceImage: widget.faceImage,
-            analysisResult: _generateAnalysisResult(),
+            faceImage: _croppedFaceImage ?? widget.faceImage,
+            analysisResult: _generateEnhancedAnalysisResult(),
           ),
         ),
       );
-    });
+    }
   }
   
-  String _generateAnalysisResult() {
-    // In a real app, this would be where you'd process the data 
-    // and potentially send it to a backend for AI analysis
+  String _generateEnhancedAnalysisResult() {
+    // Combine the user's questionnaire responses with the Gemini analysis
     Map<String, dynamic> userData = {};
     
     for (var question in _questions) {
       userData[question['question']] = question['answer'];
     }
     
-    return """Based on your skin image and responses, we've identified:
+    // Use the actual Gemini result instead of mock data
+    String baseAnalysis = _geminiAnalysisResult ?? 'Unable to analyze skin image.';
+    
+    // You can enhance this by incorporating the questionnaire data
+    String enhancedAnalysis = '''
+$baseAnalysis
 
-1. Your skin is showing signs of mild dehydration
-2. There are early indications of sun damage around the cheeks
-3. Pore size is moderate, with some congestion in the T-zone
-4. Your skin would benefit from increased hydration and UV protection
+Based on your additional information:
+- Age range: ${userData['I\'ll analyze your skin based on the photo and some additional information. First, what is your age range?'] ?? 'Not specified'}
+- Makeup frequency: ${userData['Do you wear makeup on a daily basis?'] ?? 'Not specified'}
+- UV protection: ${userData['How much do you protect your skin from UV rays?'] ?? 'Not specified'}
 
-Recommended routine:
-- Gentle cleanser morning and night
-- Hydrating toner with hyaluronic acid
-- Vitamin C serum in the morning
-- Daily sunscreen (SPF 50)
-- Retinol product 2-3 times weekly (evening only)
-- Regular exfoliation (1-2 times per week)
-
-We recommend consulting with a dermatologist for personalized advice.
-""";
+This comprehensive analysis combines AI image analysis with your personal skincare profile for more accurate recommendations.
+''';
+    
+    return enhancedAnalysis;
   }
 
   @override
