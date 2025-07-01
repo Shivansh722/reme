@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
@@ -6,6 +7,8 @@ import 'package:reme/src/features/diagnosis/views/custom_camera_screen.dart';
 import 'package:reme/src/widgets/customButton.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:reme/src/features/diagnosis/services/face_analysis_service.dart';
+import 'package:reme/src/features/shared/radiusChart.dart';
+import 'package:reme/src/features/diagnosis/views/analysisResultsScreen.dart';
 
 
 class DiagnosisView extends StatefulWidget {
@@ -292,6 +295,18 @@ class _ImageProcessingScreenState extends State<_ImageProcessingScreen> {
         _isProcessing = false;
       });
       
+      if (mounted && _analysisResult != null) {
+        // Navigate to the analysis results screen
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => AnalysisResultsScreen(
+              faceImage: _croppedImage,
+              analysisResult: _analysisResult!,
+            ),
+          ),
+        );
+      }
+      
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -309,6 +324,58 @@ class _ImageProcessingScreenState extends State<_ImageProcessingScreen> {
   
   @override
   Widget build(BuildContext context) {
+    // Extract scores from analysis result for the radar chart
+    Map<String, int> extractScores() {
+      final Map<String, int> scores = {};
+      
+      if (_analysisResult != null) {
+        // Try to extract JSON
+        final jsonRegex = RegExp(r'\{[\s\S]*?\}');
+        final jsonMatch = jsonRegex.firstMatch(_analysisResult!);
+        if (jsonMatch != null) {
+          try {
+            final jsonString = jsonMatch.group(0);
+            final Map<String, dynamic> jsonScores = jsonDecode(jsonString!);
+            scores['pimples'] = jsonScores['pimples_acne_spots'] ?? 0;
+            scores['pores'] = jsonScores['pores'] ?? 0;
+            scores['redness'] = jsonScores['redness'] ?? 0;
+            scores['firmness'] = jsonScores['firmness'] ?? 0;
+            scores['sagging'] = jsonScores['sagging'] ?? 0;
+            scores['skin grade'] = jsonScores['skin_grade'] ?? 0;
+          } catch (e) {
+            print('Error decoding JSON: $e');
+            // Default values if JSON parsing fails
+            scores['pimples'] = 50;
+            scores['pores'] = 50;
+            scores['redness'] = 50;
+            scores['firmness'] = 50;
+            scores['sagging'] = 50;
+            scores['skin grade'] = 50;
+          }
+        } else {
+          // Default values if no JSON found
+          scores['pimples'] = 50;
+          scores['pores'] = 50;
+          scores['redness'] = 50;
+          scores['firmness'] = 50;
+          scores['sagging'] = 50;
+          scores['skin grade'] = 50;
+        }
+      } else {
+        // Default values if no analysis result
+        scores['pimples'] = 50;
+        scores['pores'] = 50;
+        scores['redness'] = 50;
+        scores['firmness'] = 50;
+        scores['sagging'] = 50;
+        scores['skin grade'] = 50;
+      }
+      
+      return scores;
+    }
+    
+    final scores = extractScores();
+    
     return Scaffold(
       appBar: AppBar(
         title: const Text('Skin Analysis'),
@@ -329,17 +396,25 @@ class _ImageProcessingScreenState extends State<_ImageProcessingScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  if (_croppedImage != null) ...[
-                    Center(
-                      child: Image.file(
-                        _croppedImage!,
-                        height: 200,
-                        width: 200,
-                        fit: BoxFit.cover,
+                  // Replace the image with the radar chart
+                  Center(
+                    child: SizedBox(
+                      width: 280,
+                      height: 280,
+                      child: CustomRadarChart(
+                        values: [
+                          scores['pores'] ?? 0,
+                          scores['pimples'] ?? 0,
+                          scores['redness'] ?? 0, 
+                          scores['firmness'] ?? 0,
+                          scores['sagging'] ?? 0,
+                          scores['skin grade'] ?? 0,
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                  ],
+                  ),
+                  const SizedBox(height: 16),
+                  
                   if (_analysisResult != null) ...[
                     const Text(
                       'Analysis Results',

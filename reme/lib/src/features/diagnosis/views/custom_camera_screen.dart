@@ -8,6 +8,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:image/image.dart' as img;
 import 'dart:math' as Math;
 
+import 'package:reme/src/features/diagnosis/views/diagnosisChatScreen.dart';
+
 class CustomCameraScreen extends StatefulWidget {
   const CustomCameraScreen({super.key});
 
@@ -364,8 +366,13 @@ bool _calculateBrightness(Uint8List bytes, int width, int height) {
       
       if (!mounted) return;
       
-      // Return the captured image file to the previous screen
-      Navigator.pop(context, File(image.path));
+      // Navigate to ChatScreen with the captured image
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => DiagnosisChatScreen(faceImage: File(image.path)),
+        ),
+      );
     } catch (e) {
       setState(() {
         _isCapturing = false;

@@ -47,6 +47,7 @@ dependencies:
   flutter_dotenv: ^5.2.1
   camera:
   http: ^1.4.0
+  fl_chart: ^1.0.0
 
 dev_dependencies:
   flutter_test:
