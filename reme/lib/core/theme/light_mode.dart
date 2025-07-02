@@ -11,6 +11,7 @@ ThemeData lightMode = ThemeData(
     onBackground: Colors.black, 
     tertiary: Colors.blue,// Text color on background
     onPrimary: Colors.green.shade600, // Text color on primary
+    
   ),
   textTheme: ThemeData.light().textTheme.apply(
     bodyColor: Colors.grey.shade800, // Body text color

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'package:reme/src/features/auth/Views/authGate.dart';
+import 'package:reme/src/features/diagnosis/views/diagnosisView.dart';
 
 class Splashview extends StatefulWidget {
   const Splashview({super.key});
@@ -18,7 +19,7 @@ class _SplashviewState extends State<Splashview> {
       const Duration(seconds: 2),
       () => Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => const Authgate()),
+        MaterialPageRoute(builder: (context) => const DiagnosisView()),
       ),
     );
   }

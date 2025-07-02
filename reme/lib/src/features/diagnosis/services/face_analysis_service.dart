@@ -84,13 +84,31 @@ class FaceAnalysisService {
     // Use the correct model name for Gemini 2.0 Flash
     final url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$apiKey';
 
-    const prompt = "Analyze this face's skin. Provide a detailed assessment including: "
-        "1. Visible pimples or acne (location and severity) "
-        "2. Open pores (size and distribution) "
-        "3. Signs of dryness or oiliness "
-        "4. Any other notable skin conditions "
-        "5. Specific skincare recommendations based on these observations "
-        "Format the response in clear sections and use non-technical language.";
+    const prompt = """
+Analyze this face's skin. For each of the following categories, provide a short assessment and a NUMERICAL SCORE out of 100.
+
+1. Visible pimples or acne or spots (location and severity)
+2. Open pores (size and distribution)
+3. Signs of redness
+4. Firmness (areas affected)
+5. Sagging (areas affected)
+6. Overall skin condition (cumulative 'Skin Grade')
+7. Estimated 'Skin Age' (out of 100, where 100 = youngest possible skin)
+
+At the end, provide ONLY the following JSON object on a new line, and nothing else:
+
+{
+  "pimples_acne_spots": X,
+  "pores": X,
+  "redness": X,
+  "firmness": X,
+  "sagging": X,
+  "skin_grade": X,
+  "skin_age": X
+}
+
+Where X is a number between 0 and 100 for each category. Do not use any words instead of numbers. Do not add any explanation after the JSON.
+""";
 
     final response = await http.post(
       Uri.parse(url),

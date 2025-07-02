@@ -6,7 +6,11 @@ import 'package:reme/src/features/auth/Views/authView.dart';
 import 'package:reme/src/features/auth/Views/login_or_register.dart';
 import 'package:reme/src/features/auth/Views/registerView.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:reme/src/features/chat/views/chatView.dart';
+import 'package:reme/src/features/diagnosis/views/custom_camera_screen.dart';
 import 'package:reme/src/features/home/views/homeView.dart';
+import 'package:reme/src/features/profile/view/profileView.dart';
+import 'package:reme/src/features/shared/radiusChart.dart';
 import 'package:reme/src/features/splashView.dart'; // Add this import
 import 'firebase_options.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -35,7 +39,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false, 
       title: 'Flutter Demo',
       theme: lightMode,
-      home:  Splashview(), // Change this to Splashview
+      home: const Splashview(), // Use Splashview as the initial screen
     );
   }
 }
