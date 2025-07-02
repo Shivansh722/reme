@@ -18,12 +18,15 @@ class Custombutton extends StatelessWidget {
       onTap: onTap,
       child: Container(
 
+        width: 310,
+        height: 50,
+
 
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primary,
           borderRadius: BorderRadius.circular(24),
         ),
-        padding: const EdgeInsets.all(24),
+       
         child: Center(
           child: Text(
             text,
