@@ -7,6 +7,7 @@ import 'package:reme/src/features/auth/Views/login_or_register.dart';
 import 'package:reme/src/features/auth/Views/registerView.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:reme/src/features/chat/views/chatView.dart';
+import 'package:reme/src/features/diagnosis/views/analysisResultsScreen.dart';
 import 'package:reme/src/features/diagnosis/views/custom_camera_screen.dart';
 import 'package:reme/src/features/home/views/homeView.dart';
 import 'package:reme/src/features/profile/view/profileView.dart';
