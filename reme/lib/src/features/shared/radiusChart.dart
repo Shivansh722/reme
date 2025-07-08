@@ -39,15 +39,14 @@ class CustomRadarChart extends StatelessWidget {
     );
   }
 }
-
 class RadarChartPainter extends CustomPainter {
   final List<String> labels = [
-    'Pores',
-    'Acne/Spots',
-    'Redness',
-    'Firmness',
-    'Sagging',
-    'Skin Grade'
+    '毛穴',
+    'ニキビ/シミ',
+    '赤み',
+    '弾力',
+    'たるみ',
+    '肌の評価'
   ];
 
   final List<int> values;

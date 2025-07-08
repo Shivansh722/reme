@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false, 
       title: 'Flutter Demo',
       theme: lightMode,
-      home: const Splashview(), // Use Splashview as the initial screen
+      home:  Splashview(), // Use Splashview as the initial screen
     );
   }
 }
