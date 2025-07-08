@@ -16,59 +16,153 @@ class DetailedAnalysisScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Detailed Skin Analysis'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Premium Analysis Report',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 16 ),
+      child: Scaffold(
+        // appBar: AppBar(
+        //   title: const Text('Detailed Skin Analysis'),
+        //   backgroundColor: Colors.transparent,
+        //   elevation: 0,
+        // ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // const Text(
+              //   'Premium Analysis Report',
+              //   style: TextStyle(
+              //     fontSize: 28,
+              //     fontWeight: FontWeight.bold,
+              //   ),
+              // ),
+              const SizedBox(height: 16),
+              
+              // Enhanced radar chart
+              Center(
+                child: SizedBox(
+                  width: 300,
+                  height: 300,
+                  child: CustomRadarChart(
+                    values: [
+                      scores['pores'] ?? 0,
+                      scores['pimples'] ?? 0,
+                      scores['redness'] ?? 0,
+                      scores['firmness'] ?? 0,
+                      scores['sagging'] ?? 0,
+                      scores['skin grade'] ?? 0,
+                    ],
+                  ),
+                ),
               ),
+
+              const SizedBox(height: 24),
+
+                Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text('肌スコア'),
+                      RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: '${scores['skin grade'] ?? 0}',
+                              style: TextStyle(
+                                fontSize: 48,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                            TextSpan(
+                              text: '/100',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                Container(
+                  height: 60,
+                  width: 1,
+                  color: Colors.grey[300],
+                ),
+                
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text('肌年齢'),
+                      RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: '${scores['skin age'] ?? 0}',
+                              style: TextStyle(
+                                fontSize: 48,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                            TextSpan(
+                              text: '歳',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            
-            // Enhanced radar chart
-            Center(
-              child: SizedBox(
-                width: 300,
-                height: 300,
-                child: CustomRadarChart(
-                  values: [
-                    scores['pores'] ?? 0,
-                    scores['pimples'] ?? 0,
-                    scores['redness'] ?? 0,
-                    scores['firmness'] ?? 0,
-                    scores['sagging'] ?? 0,
-                    scores['skin grade'] ?? 0,
+              
+              const SizedBox(height: 32),
+
+                Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Color(0xFFF9F9F9),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Point"),
+                    SizedBox(height: 8),
+                    Text(
+                      '入浴時は、お湯の温度を40度以下に設定し、10〜15分程度を目安にしましょう。長時間の入浴や熱すぎるお湯は、皮膚への負担となる可能性があります。',
+                      style: TextStyle(color: Colors.black87),
+                    ),
                   ],
                 ),
               ),
-            ),
-            
-            const SizedBox(height: 32),
-            
-            // Detailed scores breakdown
-            _buildDetailedScoresSection(),
-            
-            const SizedBox(height: 32),
-            
-            // Personalized recommendations
-            _buildRecommendationsSection(),
-            
-            const SizedBox(height: 32),
-            
-            // Full analysis text
-            _buildFullAnalysisSection(),
-          ],
+              
+              
+              // Detailed scores breakdown
+              _buildDetailedScoresSection(),
+              
+              const SizedBox(height: 32),
+              
+              // Personalized recommendations
+              _buildRecommendationsSection(),
+              
+              const SizedBox(height: 32),
+              
+              // Full analysis text
+              _buildFullAnalysisSection(),
+            ],
+          ),
         ),
       ),
     );

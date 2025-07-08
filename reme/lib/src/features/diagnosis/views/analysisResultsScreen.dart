@@ -56,11 +56,11 @@ class AnalysisResultsScreen extends StatelessWidget {
     final scores = _extractScores();
 
     return Scaffold(
-      // appBar: AppBar(
+      appBar: AppBar(
        
-      //   backgroundColor: Colors.transparent,
-      //   elevation: 0,
-      // ),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -208,42 +208,47 @@ class AnalysisResultsScreen extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            Custombutton(
-              text: 'もっと詳しく診断する',
-              onTap: () {
-                // Check if user is logged in
-                final User? currentUser = FirebaseAuth.instance.currentUser;
-                
-                if (currentUser == null) {
-                  // User is not logged in, navigate to AuthGate with analysis data
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => Authgate(
-                        // Pass the analysis data to be used after login
-                        pendingAnalysisData: {
-                          'faceImage': faceImage,
-                          'analysisResult': analysisResult,
-                          'scores': _extractScores(),
-                        },
-                      ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Custombutton(
+                  text: 'もっと詳しく診断する',
+                  onTap: () {
+                    // Check if user is logged in
+                    final User? currentUser = FirebaseAuth.instance.currentUser;
+                    
+                    if (currentUser == null) {
+                      // User is not logged in, navigate to AuthGate with analysis data
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Authgate(
+                            // Pass the analysis data to be used after login
+                            pendingAnalysisData: {
+                              'faceImage': faceImage,
+                              'analysisResult': analysisResult,
+                              'scores': _extractScores(),
+                            },
+                          ),
+                        ),
+                      );
+                    } else {
+                      // User is logged in, navigate to detailed analysis page
+                     Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HomeviewMain(
+                      initialTab: 3,
+                      faceImage: faceImage,
+                      analysisResult: analysisResult,
+                      scores: _extractScores(),
                     ),
-                  );
-                } else {
-                  // User is logged in, navigate to detailed analysis page
-                 Navigator.pushReplacement(
-  context,
-  MaterialPageRoute(
-    builder: (context) => HomeviewMain(
-      initialTab: 3,
-      faceImage: faceImage,
-      analysisResult: analysisResult,
-      scores: _extractScores(),
-    ),
-  ),
-);
-                }
-              },
+                  ),
+                );
+                    }
+                  },
+                ),
+              ],
             ),
           ],
         ),
