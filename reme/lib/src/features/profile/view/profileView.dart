@@ -1,6 +1,12 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:reme/src/features/auth/Views/authGate.dart'; // Add this import
+import 'package:reme/src/features/profile/services/profileServices.dart';
 
+import 'package:reme/src/features/diagnosis/views/custom_camera_screen.dart';
 
+// Import Authgate if it's in a different file
 class MyPageScreen extends StatefulWidget {
   const MyPageScreen({super.key});
 
@@ -10,6 +16,56 @@ class MyPageScreen extends StatefulWidget {
 
 class _MyPageScreenState extends State<MyPageScreen> {
   bool notificationsEnabled = false;
+  String userEmail = 'Loading...'; // Default value while loading
+  String? profileImagePath;
+
+  @override
+  void initState() {
+    super.initState();
+    // Get the current user's email when the widget initializes
+    getCurrentUserEmail();
+    // Load profile image
+    loadProfileImage();
+  }
+
+  // Load profile image path
+  Future<void> loadProfileImage() async {
+    final path = await ProfileImageService.getProfileImagePath();
+    if (path != null) {
+      setState(() {
+        profileImagePath = path;
+      });
+    }
+  }
+
+  // Method to capture a new profile image
+  Future<void> captureProfileImage() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const CustomCameraScreen(forProfileImage: true),
+      ),
+    );
+
+    // If result is true, reload the profile image
+    if (result == true) {
+      loadProfileImage();
+    }
+  }
+
+  // Method to get current user's email from Firebase
+  void getCurrentUserEmail() {
+    User? currentUser = FirebaseAuth.instance.currentUser;
+    if (currentUser != null && currentUser.email != null) {
+      setState(() {
+        userEmail = currentUser.email!;
+      });
+    } else {
+      setState(() {
+        userEmail = 'Not signed in';
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,14 +84,41 @@ class _MyPageScreenState extends State<MyPageScreen> {
             ),
           ),
           const SizedBox(height: 20),
-          const CircleAvatar(
-            radius: 45,
-            backgroundImage: AssetImage('lib/assets/images/profile.png'), // Replace with your asset path
+          
+          // Profile image with edit option
+          Stack(
+            alignment: Alignment.bottomRight,
+            children: [
+              // Profile image
+              CircleAvatar(
+                radius: 45,
+                backgroundImage: profileImagePath != null
+                    ? FileImage(File(profileImagePath!))
+                    : const AssetImage('lib/assets/images/profile.png') as ImageProvider,
+              ),
+              
+              // Edit button
+              GestureDetector(
+                onTap: captureProfileImage,
+                child: Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: Colors.pink.shade300,
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.edit,
+                    color: Colors.white,
+                    size: 18,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 30),
           buildInfoRow('名前', '吉永久百合'),
           const SizedBox(height: 16),
-          buildInfoRow('メール\nアドレス', 'cgtieruajk@gmail.com'),
+          buildInfoRow('メール\nアドレス', userEmail), // Use the current user's email
           const SizedBox(height: 16),
           buildInfoRow('パスワード', '＊＊＊＊＊＊＊＊'),
           const SizedBox(height: 16),
@@ -47,7 +130,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   '通知設定',
                   style: TextStyle(fontSize: 16),
                 ),
-              SizedBox(width: 16),
+                SizedBox(width: 16),
                 Switch(
                   value: notificationsEnabled,
                   onChanged: (val) {
@@ -79,7 +162,56 @@ class _MyPageScreenState extends State<MyPageScreen> {
           Divider(height: 1, color: Colors.grey.shade300),
           ListTile(
             title: const Text('ログアウト'),
-           
+            onTap: () async {
+              // Show confirmation dialog
+              bool confirm = await showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: const Text('ログアウト'),
+                    content: const Text('本当にログアウトしますか？'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(false),
+                        child: const Text('キャンセル'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).pop(true),
+                        child: const Text('ログアウト'),
+                      ),
+                    ],
+                  );
+                },
+              ) ?? false;
+              
+              if (confirm && context.mounted) {
+                try {
+                  await FirebaseAuth.instance.signOut();
+                  // Clear user data in the state
+                  setState(() {
+                    userEmail = 'Not signed in';
+                  });
+                  
+                  // Navigate to AuthGate after sign out
+                  if (context.mounted) {
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                        builder: (context) => const Authgate(),
+                      ),
+                      (route) => false,
+                    );
+                  }
+                  
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('ログアウトしました')),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('ログアウトに失敗しました: ${e.toString()}')),
+                  );
+                }
+              }
+            },
           ),
         ],
       ),

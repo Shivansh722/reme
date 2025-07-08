@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:reme/src/features/chat/views/chatView.dart';
 import 'package:reme/src/features/diagnosis/views/analysisResultsScreen.dart';
 import 'package:reme/src/features/diagnosis/services/face_analysis_service.dart';
+import 'package:reme/src/features/profile/services/profileServices.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
 class DiagnosisChatScreen extends StatefulWidget {
@@ -12,7 +13,7 @@ class DiagnosisChatScreen extends StatefulWidget {
     super.key,
     required this.faceImage,
   });
-
+  
   @override
   State<DiagnosisChatScreen> createState() => _DiagnosisChatScreenState();
 }
@@ -21,41 +22,41 @@ class _DiagnosisChatScreenState extends State<DiagnosisChatScreen> {
   final List<Map<String, dynamic>> _messages = [];
   final List<Map<String, dynamic>> _questions = [
     {
-      'question': 'I\'ll analyze your skin based on the photo and some additional information. First, what is your age range?',
-      'options': ['20s', '30s', '40s', '50s', '60s or above'],
+      'question': '写真と追加情報に基づいてお肌を分析します。まず、あなたの年齢層を教えてください。',
+      'options': ['20代', '30代', '40代', '50代', '60代以上'],
       'answer': null,
     },
     {
-      'question': 'Do you wear makeup on a daily basis?',
-      'options': ['Every day', 'Several times a week', 'Rarely', 'Never'],
+      'question': '毎日メイクをしていますか？',
+      'options': ['毎日', '週に数回', 'ほとんどしない', '全くしない'],
       'answer': null,
     },
     {
-      'question': 'How much do you protect your skin from UV rays?',
-      'options': ['Daily with SPF 30+', 'Only when going out', 'Rarely', 'Never'],
+      'question': 'どのくらいUV対策をしていますか？',
+      'options': ['毎日SPF30以上を使用', '外出時のみ', 'ほとんどしない', '全くしない'],
       'answer': null,
     },
     {
-      'question': 'Please select your skin concerns (select all that apply):',
-      'options': ['Pores', 'Dark spots', 'Redness', 'Dryness', 'Sagging', 'Acne', 'Fine lines', 'Oiliness'],
-      'answer': null,
-      'multiSelect': true,
-    },
-    {
-      'question': 'Which skincare products are you currently using? (select all that apply)',
-      'options': ['Cleanser', 'Toner', 'Serum', 'Moisturizer', 'Sunscreen', 'Exfoliator', 'Face mask', 'Eye cream', 'None'],
+      'question': 'お肌の悩みを選択してください（複数選択可）：',
+      'options': ['毛穴', 'シミ', '赤み', '乾燥', 'たるみ', 'ニキビ', '小じわ', '脂性肌'],
       'answer': null,
       'multiSelect': true,
     },
     {
-      'question': 'What is your ideal skin condition? (select all that apply)',
-      'options': ['Translucent skin', 'Pore-free', 'Moisturized', 'Even tone', 'Firm and elastic', 'Blemish-free'],
+      'question': '現在使用しているスキンケア製品を選択してください（複数選択可）：',
+      'options': ['洗顔料', '化粧水', '美容液', '保湿クリーム', '日焼け止め', '角質ケア', 'フェイスマスク', 'アイクリーム', 'なし'],
       'answer': null,
       'multiSelect': true,
     },
     {
-      'question': 'Does your skin condition change with the seasons?',
-      'options': ['Yes, significantly', 'Yes, somewhat', 'No, stays mostly the same'],
+      'question': '理想のお肌の状態は？（複数選択可）',
+      'options': ['透明感のある肌', '毛穴レス', '潤いのある肌', '均一な肌トーン', 'ハリと弾力のある肌', '肌トラブルのない肌'],
+      'answer': null,
+      'multiSelect': true,
+    },
+    {
+      'question': 'お肌の状態は季節によって変化しますか？',
+      'options': ['はい、大きく変化します', 'はい、少し変化します', 'いいえ、ほとんど変わりません'],
       'answer': null,
     },
   ];
@@ -73,7 +74,7 @@ class _DiagnosisChatScreenState extends State<DiagnosisChatScreen> {
   void initState() {
     super.initState();
     // Add welcome message
-    _addAiMessage('Hi there! I\'m analyzing the image of your skin...');
+    _addAiMessage('こんにちは！お肌の画像を分析しています...');
     
     // Start the actual Gemini analysis in the background
     _performGeminiAnalysis();
@@ -82,6 +83,9 @@ class _DiagnosisChatScreenState extends State<DiagnosisChatScreen> {
     Future.delayed(const Duration(seconds: 1), () {
       _addAiMessage(_questions[_currentQuestionIndex]['question']);
     });
+    
+    // Save the diagnosis image as profile image automatically
+    _saveDiagnosisImageAsProfile();
   }
 
   // Perform the actual Gemini analysis
@@ -190,7 +194,7 @@ class _DiagnosisChatScreenState extends State<DiagnosisChatScreen> {
       // Show a reminder to select at least one option
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Please select at least one option'),
+          content: Text('少なくとも1つのオプションを選択してください'),
           duration: Duration(seconds: 2),
         ),
       );
@@ -218,7 +222,7 @@ class _DiagnosisChatScreenState extends State<DiagnosisChatScreen> {
       _isAnalyzing = true;
     });
     
-    _addAiMessage("Thank you for providing this information. I'm finalizing your skin analysis now...");
+    _addAiMessage("情報をご提供いただきありがとうございます。お肌の分析を完了しています...");
     
     // Wait for Gemini analysis to complete if it's still running
     _waitForAnalysisAndNavigate();
@@ -255,23 +259,31 @@ class _DiagnosisChatScreenState extends State<DiagnosisChatScreen> {
     }
     
     // Use the actual Gemini result instead of mock data
-    String baseAnalysis = _geminiAnalysisResult ?? 'Unable to analyze skin image.';
+    String baseAnalysis = _geminiAnalysisResult ?? 'お肌の画像を分析できませんでした。';
     
     // You can enhance this by incorporating the questionnaire data
     String enhancedAnalysis = '''
 $baseAnalysis
 
-Based on your additional information:
-- Age range: ${userData['I\'ll analyze your skin based on the photo and some additional information. First, what is your age range?'] ?? 'Not specified'}
-- Makeup frequency: ${userData['Do you wear makeup on a daily basis?'] ?? 'Not specified'}
-- UV protection: ${userData['How much do you protect your skin from UV rays?'] ?? 'Not specified'}
+あなたの追加情報に基づいて:
+- 年齢層: ${userData['写真と追加情報に基づいてお肌を分析します。まず、あなたの年齢層を教えてください。'] ?? '未指定'}
+- メイクの頻度: ${userData['毎日メイクをしていますか？'] ?? '未指定'}
+- UV対策: ${userData['どのくらいUV対策をしていますか？'] ?? '未指定'}
 
-This comprehensive analysis combines AI image analysis with your personal skincare profile for more accurate recommendations.
+この総合分析は、AIによる画像分析とあなたの個人的なスキンケアプロフィールを組み合わせて、より正確な推奨事項を提供します。
 ''';
     
     return enhancedAnalysis;
   }
 
+  Future<void> _saveDiagnosisImageAsProfile() async {
+    try {
+      await ProfileImageService.useDiagnosisImageAsProfile(widget.faceImage);
+    } catch (e) {
+      print('Error saving diagnosis image as profile: $e');
+    }
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -382,16 +394,16 @@ This comprehensive analysis combines AI image analysis with your personal skinca
                 padding: const EdgeInsets.all(8.0),
                 child: SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
+                    child: ElevatedButton(
                     onPressed: _submitMultiSelectAnswers,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.pinkAccent,
                       padding: const EdgeInsets.symmetric(vertical: 12),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(8),
                       ),
                     ),
-                    child: const Text('Continue'),
+                    child: const Text('続ける'),
                   ),
                 ),
               )

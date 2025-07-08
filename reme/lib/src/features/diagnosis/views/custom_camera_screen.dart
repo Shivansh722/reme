@@ -9,11 +9,18 @@ import 'package:image/image.dart' as img;
 import 'dart:math' as Math;
 
 import 'package:reme/src/features/diagnosis/views/diagnosisChatScreen.dart';
+import 'package:reme/src/features/profile/services/profileServices.dart';
+
 
 
 
 class CustomCameraScreen extends StatefulWidget {
-  const CustomCameraScreen({super.key});
+  final bool forProfileImage;
+  
+  const CustomCameraScreen({
+    super.key, 
+    this.forProfileImage = false,
+  });
 
   @override
   State<CustomCameraScreen> createState() => _CustomCameraScreenState();
@@ -365,12 +372,28 @@ bool _calculateBrightness(Uint8List bytes, int width, int height) {
       
       if (!mounted) return;
       
-      // Navigate to DiagnosisChatScreen with the captured image
+      final imageFile = File(image.path);
+      
+      // If this is for profile image, save it and navigate back
+      if (widget.forProfileImage) {
+        final imagePath = await ProfileImageService.saveProfileImage(imageFile);
+        
+        // Show success message and return to profile
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('プロフィール画像を更新しました')),
+        );
+        
+        // Return to profile page
+        Navigator.pop(context, true);
+        return;
+      }
+      
+      // For diagnosis use, navigate to DiagnosisChatScreen as before
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => DiagnosisChatScreen(
-            faceImage: File(image.path),
+            faceImage: imageFile,
           ),
         ),
       );
