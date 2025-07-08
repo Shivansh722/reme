@@ -48,6 +48,7 @@ dependencies:
   camera:
   http: ^1.4.0
   fl_chart: ^1.0.0
+  photo_manager: ^3.7.1
 
 dev_dependencies:
   flutter_test:

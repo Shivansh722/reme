@@ -10,6 +10,8 @@ import 'dart:math' as Math;
 
 import 'package:reme/src/features/diagnosis/views/diagnosisChatScreen.dart';
 
+
+
 class CustomCameraScreen extends StatefulWidget {
   const CustomCameraScreen({super.key});
 
@@ -84,12 +86,10 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> with WidgetsBin
   // Request camera permissions explicitly
   Future<void> _requestPermissions() async {
     try {
-      Map<Permission, PermissionStatus> statuses = await [
-        Permission.camera,
-        Permission.microphone,
-      ].request();
+      // Only request camera permission, remove microphone and others
+      PermissionStatus status = await Permission.camera.request();
 
-      if (statuses[Permission.camera] != PermissionStatus.granted) {
+      if (status != PermissionStatus.granted) {
         setState(() {
           _hasError = true;
           _errorMessage = 'Camera permission is required for this feature';
@@ -492,23 +492,30 @@ bool _calculateBrightness(Uint8List bytes, int width, int height) {
                 '自動で撮影されます。',
                 style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 40),
 
               const Text('すべてにチェックが付くように撮影場所や\n'
                   'カメラ位置を調整してください。',
                   style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
               ),
 
+              const SizedBox(height: 40),
+
               // Row of ticks that turn yellow when conditions are met
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  _buildTickIndicator("Face Detected", _isFaceDetected),
-                  _buildTickIndicator("Position", _isGoodPosition),
-                  _buildTickIndicator("Lighting", _isGoodBrightness),
-                  _buildTickIndicator("Facing Front", _isFacingFront),
+                  _buildTickIndicator("明るさ", _isFaceDetected),//face detected
+                  _buildTickIndicator("ポジション", _isGoodPosition),
+                  _buildTickIndicator("正面", _isGoodBrightness),//brightness
+                  _buildTickIndicator("ポジション", _isFacingFront),//facing front
                 ],
               ),
+
+
+              
+
+
             ],
           ),
         ),
@@ -528,52 +535,19 @@ bool _calculateBrightness(Uint8List bytes, int width, int height) {
           bottom: 40,
           left: 0,
           right: 0,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-             
-              
-              // Capture button
-              GestureDetector(
-                onTap: _isCapturing ? null : _takePicture,
-                child: Container(
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    color: _isFaceDetected && _isGoodPosition && _isGoodBrightness && _isFacingFront
-                        ? Colors.green
-                        : Colors.white,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: _isFaceDetected && _isGoodPosition && _isGoodBrightness && _isFacingFront
-                          ? Colors.green
-                          : Colors.white,
-                      width: 3
-                    ),
-                  ),
-                  child: _isCapturing
-                      ? const CircularProgressIndicator(color: Colors.black)
-                      : Container(
-                          margin: const EdgeInsets.all(3),
-                          decoration: BoxDecoration(
-                            color: _isFaceDetected && _isGoodPosition && _isGoodBrightness && _isFacingFront
-                                ? Colors.green
-                                : Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                ),
-              ),
-
-               // Switch camera button
-              IconButton(
-                icon: const Icon(Icons.flip_camera_ios, color: Colors.white, size: 30),
-                onPressed: _switchCamera,
-              ),
-              
-              // Placeholder for spacing
-              const SizedBox(width: 30),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+             mainAxisAlignment: MainAxisAlignment.end,
+             children: [
+            
+            
+               IconButton(
+                 icon: const Icon(Icons.flip_camera_ios, color: Colors.white, size: 30),
+                 onPressed: _switchCamera,
+               ),
+             ],
+                            ),
           ),
         ),
       ],

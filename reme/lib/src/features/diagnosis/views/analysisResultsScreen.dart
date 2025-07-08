@@ -57,7 +57,7 @@ class AnalysisResultsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Skin Analysis Results'),
+       
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
