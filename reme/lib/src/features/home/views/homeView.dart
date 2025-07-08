@@ -1,19 +1,38 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:reme/src/features/home/widgets/recommendedCard.dart';
 import 'package:reme/src/features/shared/Widgets/bottom_nav_bar.dart';
 import 'package:reme/src/features/diagnosis/views/custom_camera_screen.dart';
 import 'package:reme/src/features/chat/views/chatView.dart';
-import 'package:reme/src/features/profile/view/profileView.dart'; // Add this import
+import 'package:reme/src/features/profile/view/profileView.dart';
+import 'package:reme/src/features/diagnosis/views/detailedAnalysisScreen.dart'; // Add this import
 
 class HomeviewMain extends StatefulWidget {
-  const HomeviewMain({super.key});
+  final int initialTab;
+  final File? faceImage;
+  final String? analysisResult;
+  final Map<String, int>? scores;
+
+  const HomeviewMain({
+    super.key,
+    this.initialTab = 0,
+    this.faceImage,
+    this.analysisResult,
+    this.scores,
+  });
 
   @override
   State<HomeviewMain> createState() => _HomeviewMainState();
 }
 
 class _HomeviewMainState extends State<HomeviewMain> {
-  int _currentIndex = 0;
+  late int _currentIndex;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentIndex = widget.initialTab;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,9 +58,23 @@ class _HomeviewMainState extends State<HomeviewMain> {
       case 2:
         return const ChatScreen();
       case 3:
-        return Center(child: Text("Chart Screen"));
+        // If analysis data is provided, use it; otherwise, use default
+        return DetailedAnalysisScreen(
+          faceImage: widget.faceImage,
+          analysisResult: widget.analysisResult ??
+              "Your skin analysis shows good overall health with some areas for improvement. The analysis indicates moderate pore visibility and slight redness in certain areas. Your skin firmness is within normal range, and there are minimal signs of sagging. Continue with your current skincare routine while focusing on the recommended improvements below.",
+          scores: widget.scores ??
+              {
+                'pores': 75,
+                'pimples': 85,
+                'redness': 65,
+                'firmness': 80,
+                'sagging': 88,
+                'skin grade': 78,
+              },
+        );
       case 4:
-        return const MyPageScreen(); // Replace with your profile screen
+        return const MyPageScreen();
       default:
         return DiagnosisScreen();
     }

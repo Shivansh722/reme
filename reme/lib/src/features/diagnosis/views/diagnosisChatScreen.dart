@@ -275,43 +275,26 @@ This comprehensive analysis combines AI image analysis with your personal skinca
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Skin Analysis'),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-      ),
+
       backgroundColor: Colors.white,
       body: Padding(
-        padding: const EdgeInsets.only(top: 12, left: 8, right: 8, bottom: 16),
+        padding: const EdgeInsets.only(top: 60, left: 8, right: 8, bottom: 16),
         child: Column(
           children: [
             // AI assistant header
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              color: Colors.grey[100],
+            Padding(
+              padding: const EdgeInsets.all(16),
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  const SizedBox(width: 16),
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: Colors.pinkAccent,
-                      borderRadius: BorderRadius.circular(18),
-                    ),
-                    child: const Icon(Icons.spa, color: Colors.white, size: 20),
-                  ),
-                  const SizedBox(width: 12),
-                  const Text(
-                    'Skin AI Assistant',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
+                GestureDetector(
+                  onTap: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Icon(Icons.close, color: Colors.black87, size: 24),
+                ),
+              ],
+            ),
             ),
             
             // Chat messages
@@ -319,62 +302,74 @@ This comprehensive analysis combines AI image analysis with your personal skinca
               child: ListView.builder(
                 controller: _scrollController,
                 padding: const EdgeInsets.all(12),
-                itemCount: _messages.length + 
-                  (_currentQuestionIndex < _questions.length && !_analysisComplete 
-                    ? (_questions[_currentQuestionIndex]['options'] as List).length 
-                    : 0),
+                itemCount: _messages.length,
                 itemBuilder: (context, index) {
-                  if (index < _messages.length) {
-                    return ChatBubble(
-                      message: _messages[index]['message'],
-                      isSender: _messages[index]['isSender'],
-                      hasLink: _messages[index]['hasLink'] ?? false,
-                    );
-                  } else if (!_analysisComplete) {
-                    // Display options for current question
-                    final optionIndex = index - _messages.length;
-                    final options = _questions[_currentQuestionIndex]['options'];
-                    final option = options[optionIndex];
+                  // Display the message
+                  Widget messageWidget = ChatBubble(
+                    message: _messages[index]['message'],
+                    isSender: _messages[index]['isSender'],
+                    hasLink: _messages[index]['hasLink'] ?? false,
+                  );
+
+                  // If this is the current question from the AI, also show its options
+                  bool isCurrentQuestion = !_analysisComplete && 
+                      index == _messages.length - 1 && 
+                      !_messages[index]['isSender'] &&
+                      _currentQuestionIndex < _questions.length &&
+                      _messages[index]['message'] == _questions[_currentQuestionIndex]['question'];
+
+                  if (isCurrentQuestion) {
+                    final options = _questions[_currentQuestionIndex]['options'] as List;
                     final isMultiSelect = _questions[_currentQuestionIndex]['multiSelect'] == true;
-                    final isSelected = isMultiSelect && 
-                      (_questions[_currentQuestionIndex]['answer'] ?? []).contains(option);
-                    
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
-                      child: GestureDetector(
-                        onTap: () {
-                          if (!isMultiSelect) {
-                            _handleOptionSelected(option);
-                          } else {
-                            // For multi-select, just toggle selection
-                            _handleOptionSelected(option);
-                          }
-                        },
-                        child: Row(
-                          children: [
-                            const SizedBox(width: 12),
-                            Icon(
-                              isMultiSelect 
-                                ? (isSelected ? Icons.check_box : Icons.check_box_outline_blank)
-                                : (isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked),
-                              size: 20,
-                              color: isSelected ? Colors.pinkAccent : Colors.grey,
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              option, 
-                              style: TextStyle(
-                                fontSize: 14,
-                                color: isSelected ? Colors.pinkAccent : Colors.black87,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        messageWidget,
+                        const SizedBox(height: 12),
+                        ...options.map((option) {
+                          final isSelected = isMultiSelect && 
+                            (_questions[_currentQuestionIndex]['answer'] ?? []).contains(option);
+                          
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0, left: 12.0),
+                            child: GestureDetector(
+                              onTap: () {
+                                if (!isMultiSelect) {
+                                  _handleOptionSelected(option);
+                                } else {
+                                  // For multi-select, just toggle selection
+                                  _handleOptionSelected(option);
+                                }
+                              },
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    isMultiSelect 
+                                      ? (isSelected ? Icons.check_box : Icons.check_box_outline_blank)
+                                      : (isSelected ? Icons.radio_button_checked : Icons.radio_button_unchecked),
+                                    size: 20,
+                                    color: isSelected ? Colors.pinkAccent : Colors.grey,
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    option, 
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: isSelected ? Colors.pinkAccent : Colors.black87,
+                                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
-                        ),
-                      ),
+                          );
+                        }).toList(),
+                      ],
                     );
                   }
-                  return null;
+                  
+                  return messageWidget;
                 },
               ),
             ),

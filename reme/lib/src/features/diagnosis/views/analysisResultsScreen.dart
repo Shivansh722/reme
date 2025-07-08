@@ -2,8 +2,14 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math' as Math;
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:reme/src/features/diagnosis/views/detailedAnalysisScreen.dart';
+import 'package:reme/src/features/home/views/homeView.dart';
+import 'package:reme/src/features/home/widgets/recommendedCard.dart';
 import 'package:reme/src/widgets/customButton.dart';
-import 'package:reme/src/features/shared/radiusChart.dart'; // Import the radar chart
+import 'package:reme/src/features/shared/radiusChart.dart';
+import 'package:reme/src/features/auth/Views/authGate.dart';
+
 
 class AnalysisResultsScreen extends StatelessWidget {
   final File? faceImage;
@@ -51,7 +57,7 @@ class AnalysisResultsScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Skin Analysis Results'),
+       
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
@@ -62,146 +68,187 @@ class AnalysisResultsScreen extends StatelessWidget {
           children: [
             // Replace the image with the radar chart
             Center(
-              child: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.2),
-                      spreadRadius: 1,
-                      blurRadius: 5,
-                      offset: const Offset(0, 2),
-                    ),
+              child: SizedBox(
+                width: 280,
+                height: 280,
+                child: CustomRadarChart(
+                  values: [
+                    scores['pores'] ?? 0,
+                    scores['pimples'] ?? 0,
+                    scores['redness'] ?? 0, 
+                    scores['firmness'] ?? 0,
+                    scores['sagging'] ?? 0,
+                    scores['skin grade'] ?? 0,
                   ],
-                ),
-                child: SizedBox(
-                  width: 280,
-                  height: 280,
-                  child: CustomRadarChart(
-                    values: [
-                      scores['pores'] ?? 0,
-                      scores['pimples'] ?? 0,
-                      scores['redness'] ?? 0, 
-                      scores['firmness'] ?? 0,
-                      scores['sagging'] ?? 0,
-                      scores['skin grade'] ?? 0,
-                    ],
-                  ),
                 ),
               ),
             ),
             
-            const SizedBox(height: 24),
+            const SizedBox(height: 40),
 
             // Add the debug section right here, after the radar chart and before the summary
-            Container(
-              margin: const EdgeInsets.only(bottom: 16),
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.withOpacity(0.3)),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'DEBUG: Raw Response',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text('肌スコア'),
+                      RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: '${scores['skin grade'] ?? 0}',
+                              style: TextStyle(
+                                fontSize: 48,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                            TextSpan(
+                              text: '/100',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    analysisResult,
-                    style: const TextStyle(fontSize: 10),
-                    maxLines: 10,
-                    overflow: TextOverflow.ellipsis,
+                ),
+                
+                Container(
+                  height: 60,
+                  width: 1,
+                  color: Colors.grey[300],
+                ),
+                
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Text('肌年齢'),
+                      RichText(
+                        text: TextSpan(
+                          children: [
+                            TextSpan(
+                              text: '${scores['skin age'] ?? 0}',
+                              style: TextStyle(
+                                fontSize: 48,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                            TextSpan(
+                              text: '歳',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
 
-            // Summary section
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.blue.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    'Summary',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+            const SizedBox(height: 40),
+
+          
+
+           Container(
+                padding: EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Color(0xFFF9F9F9),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Point"),
+                    SizedBox(height: 8),
+                    Text(
+                      '入浴時は、お湯の温度を40度以下に設定し、10〜15分程度を目安にしましょう。長時間の入浴や熱すぎるお湯は、皮膚への負担となる可能性があります。',
+                      style: TextStyle(color: Colors.black87),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Overall metrics in larger format
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      _buildScoreCircle(
-                        'Skin Grade',
-                        scores['skin grade'] ?? 0,
-                        Colors.blue,
-                      ),
-                      _buildScoreCircle(
-                        'Skin Age',
-                        scores['skin age'] ?? 0,
-                        Colors.purple,
-                        isAge: true,
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 20),
-
-                  // Detailed metrics in smaller circles
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    alignment: WrapAlignment.spaceEvenly,
-                    children: [
-                      _buildScoreCircle('Acne/Spots',
-                          scores['spots'] ?? scores['acne'] ?? scores['pimples'] ?? 0, Colors.red),
-                      _buildScoreCircle('Pores', scores['pores'] ?? 0, Colors.orange),
-                      _buildScoreCircle('Redness', scores['redness'] ?? 0, Colors.pinkAccent),
-                      _buildScoreCircle('Firmness', scores['firmness'] ?? 0, Colors.green),
-                      _buildScoreCircle('Sagging', scores['sagging'] ?? 0, Colors.teal),
-                    ],
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
 
             const Text(
-              'Detailed Analysis',
+              '肌の状態',
               style: TextStyle(
-                fontSize: 24,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
 
-            Text(
-              analysisResult,
-              style: const TextStyle(fontSize: 16),
-            ),
+             Row(
+             children: [
+               ProductCard(
+                           title: '母袋有機農場シリーズ...',
+                           description: '栄養豊富なヘチマ水がすっと浸透、繊細な肌を包み込み',
+                           price: '¥1,234(税込)',
+                         ),
+              SizedBox(width: 8),
 
-            const SizedBox(height: 32),
+                         ProductCard(
+                           title: '母袋有機農場シリーズ...',
+                           description: '栄養豊富なヘチマ水がすっと浸透、繊細な肌を包み込み',
+                           price: '¥1,234(税込)',
+                         ),
+             ],
+           ),
 
-            Custombutton(
-              text: 'Back to Home',
-              onTap: () {
-                Navigator.of(context).pop();
-              },
+            const SizedBox(height: 16),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Custombutton(
+                  text: 'もっと詳しく診断する',
+                  onTap: () {
+                    // Check if user is logged in
+                    final User? currentUser = FirebaseAuth.instance.currentUser;
+                    
+                    if (currentUser == null) {
+                      // User is not logged in, navigate to AuthGate with analysis data
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => Authgate(
+                            // Pass the analysis data to be used after login
+                            pendingAnalysisData: {
+                              'faceImage': faceImage,
+                              'analysisResult': analysisResult,
+                              'scores': _extractScores(),
+                            },
+                          ),
+                        ),
+                      );
+                    } else {
+                      // User is logged in, navigate to detailed analysis page
+                     Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HomeviewMain(
+                      initialTab: 3,
+                      faceImage: faceImage,
+                      analysisResult: analysisResult,
+                      scores: _extractScores(),
+                    ),
+                  ),
+                );
+                    }
+                  },
+                ),
+              ],
             ),
           ],
         ),

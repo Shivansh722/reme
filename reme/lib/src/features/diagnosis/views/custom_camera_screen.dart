@@ -10,6 +10,8 @@ import 'dart:math' as Math;
 
 import 'package:reme/src/features/diagnosis/views/diagnosisChatScreen.dart';
 
+
+
 class CustomCameraScreen extends StatefulWidget {
   const CustomCameraScreen({super.key});
 
@@ -46,7 +48,6 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> with WidgetsBin
   bool _isProcessingFrame = false;
   Timer? _autoCaptureCooldown;
   int _frameCount = 0;
-  bool _autoCaptureEnabled = true;
   
   @override
   void initState() {
@@ -85,12 +86,10 @@ class _CustomCameraScreenState extends State<CustomCameraScreen> with WidgetsBin
   // Request camera permissions explicitly
   Future<void> _requestPermissions() async {
     try {
-      Map<Permission, PermissionStatus> statuses = await [
-        Permission.camera,
-        Permission.microphone,
-      ].request();
+      // Only request camera permission, remove microphone and others
+      PermissionStatus status = await Permission.camera.request();
 
-      if (statuses[Permission.camera] != PermissionStatus.granted) {
+      if (status != PermissionStatus.granted) {
         setState(() {
           _hasError = true;
           _errorMessage = 'Camera permission is required for this feature';
@@ -211,8 +210,8 @@ Future<void> _initializeController(CameraDescription cameraDescription) async {
     _updateFaceMetrics(faces, Size(image.width.toDouble(), image.height.toDouble()), 
                        _getYuvData(image), image.width, image.height);
 
-    // Simplified auto-capture condition for testing
-    if (_autoCaptureEnabled && _isFaceDetected && _autoCaptureCooldown == null) {
+    // Auto-capture as soon as face is detected
+    if (_isFaceDetected && _autoCaptureCooldown == null) {
       print('Auto-capture triggered');
       _autoCaptureCooldown = Timer(const Duration(seconds: 2), () {
         _autoCaptureCooldown = null;
@@ -488,9 +487,35 @@ bool _calculateBrightness(Uint8List bytes, int width, int height) {
               ),
               const SizedBox(height: 16),
               const Text(
-                'Position your face within the oval',
+                '枠に顔を合わせてください \n'
+                '下記にすべてチェックが付くと \n'
+                '自動で撮影されます。',
                 style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
               ),
+              const SizedBox(height: 40),
+
+              const Text('すべてにチェックが付くように撮影場所や\n'
+                  'カメラ位置を調整してください。',
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+
+              const SizedBox(height: 40),
+
+              // Row of ticks that turn yellow when conditions are met
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildTickIndicator("明るさ", _isFaceDetected),//face detected
+                  _buildTickIndicator("ポジション", _isGoodPosition),
+                  _buildTickIndicator("正面", _isGoodBrightness),//brightness
+                  _buildTickIndicator("ポジション", _isFacingFront),//facing front
+                ],
+              ),
+
+
+              
+
+
             ],
           ),
         ),
@@ -505,104 +530,24 @@ bool _calculateBrightness(Uint8List bytes, int width, int height) {
           ),
         ),
         
-        
-        // Status indicators
-        Positioned(
-          top: 100,
-          right: 20,
-          child: Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.6),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildStatusIndicator("Face Detected", _isFaceDetected),
-                const SizedBox(height: 8),
-                _buildStatusIndicator("Good Position", _isGoodPosition),
-                const SizedBox(height: 8),
-                _buildStatusIndicator("Good Lighting", _isGoodBrightness),
-                const SizedBox(height: 8),
-                _buildStatusIndicator("Facing Front", _isFacingFront),
-              ],
-            ),
-          ),
-        ),
-        
-        // Auto-capture toggle
-        Positioned(
-          top: 40,
-          right: 16,
-          child: Row(
-            children: [
-              const Text(
-                "Auto",
-                style: TextStyle(color: Colors.white),
-              ),
-              Switch(
-                value: _autoCaptureEnabled,
-                onChanged: (value) {
-                  setState(() {
-                    _autoCaptureEnabled = value;
-                  });
-                },
-                activeColor: Colors.green,
-              ),
-            ],
-          ),
-        ),
-        
         // Bottom controls
         Positioned(
           bottom: 40,
           left: 0,
           right: 0,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              // Switch camera button
-              IconButton(
-                icon: const Icon(Icons.flip_camera_ios, color: Colors.white, size: 30),
-                onPressed: _switchCamera,
-              ),
-              
-              // Capture button
-              GestureDetector(
-                onTap: _isCapturing ? null : _takePicture,
-                child: Container(
-                  width: 70,
-                  height: 70,
-                  decoration: BoxDecoration(
-                    color: _isFaceDetected && _isGoodPosition && _isGoodBrightness && _isFacingFront
-                        ? Colors.green
-                        : Colors.white,
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: _isFaceDetected && _isGoodPosition && _isGoodBrightness && _isFacingFront
-                          ? Colors.green
-                          : Colors.white,
-                      width: 3
-                    ),
-                  ),
-                  child: _isCapturing
-                      ? const CircularProgressIndicator(color: Colors.black)
-                      : Container(
-                          margin: const EdgeInsets.all(3),
-                          decoration: BoxDecoration(
-                            color: _isFaceDetected && _isGoodPosition && _isGoodBrightness && _isFacingFront
-                                ? Colors.green
-                                : Colors.white,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                ),
-              ),
-              
-              // Placeholder for spacing
-              const SizedBox(width: 30),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+             mainAxisAlignment: MainAxisAlignment.end,
+             children: [
+            
+            
+               IconButton(
+                 icon: const Icon(Icons.flip_camera_ios, color: Colors.white, size: 30),
+                 onPressed: _switchCamera,
+               ),
+             ],
+                            ),
           ),
         ),
       ],
@@ -628,4 +573,45 @@ bool _calculateBrightness(Uint8List bytes, int width, int height) {
       ],
     );
   }
+
+  Widget _buildCompactStatusIndicator(IconData icon, bool isActive) {
+    return Column(
+      children: [
+        Icon(
+          isActive ? icon : Icons.circle,
+          color: isActive ? Colors.green : Colors.white,
+          size: 24,
+        ),
+        const SizedBox(height: 4),
+        Icon(
+          isActive ? Icons.check_circle : Icons.circle_outlined,
+          color: isActive ? Colors.green : Colors.white,
+          size: 16,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTickIndicator(String label, bool isActive) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+    child: Column(
+      children: [
+        Icon(
+          Icons.check,  // Simple checkmark without circle
+          color: isActive ? Colors.yellow : Colors.white,
+          size: 24,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            color: isActive ? Colors.yellow : Colors.white,
+            fontSize: 12,
+          ),
+        ),
+      ],
+    ),
+  );
+}
 }

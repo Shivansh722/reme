@@ -28,16 +28,15 @@ class _DiagnosisViewState extends State<DiagnosisView> {
   Future<void> _requestPermissions() async {
     Map<Permission, PermissionStatus> statuses = await [
       Permission.camera,
-      Permission.photos,
+      // Removing Permission.photos as it's not required for camera functionality
     ].request();
 
-    if (statuses[Permission.camera] != PermissionStatus.granted ||
-        statuses[Permission.photos] != PermissionStatus.granted) {
+    if (statuses[Permission.camera] != PermissionStatus.granted) {
       // Handle permission denied
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Camera and gallery permissions are required'),
+            content: Text('Camera permission is required'),
           ),
         );
       }
