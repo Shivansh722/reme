@@ -56,11 +56,11 @@ class AnalysisResultsScreen extends StatelessWidget {
     final scores = _extractScores();
 
     return Scaffold(
-      appBar: AppBar(
+      // appBar: AppBar(
        
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-      ),
+      //   backgroundColor: Colors.transparent,
+      //   elevation: 0,
+      // ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
