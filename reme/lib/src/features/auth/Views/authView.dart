@@ -77,16 +77,29 @@ class SignUpScreen extends StatelessWidget {
       // Dismiss loading indicator
       if (context.mounted) Navigator.pop(context);
       
-      // Firebase Auth state changes will handle navigation via AuthGate
-      
+      // Explicitly navigate to home view after successful sign-in
+      if (context.mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeviewMain(
+              initialTab: 3,
+              faceImage: pendingAnalysisData?['faceImage'],
+              analysisResult: pendingAnalysisData?['analysisResult'],
+              scores: pendingAnalysisData?['scores'],
+            ),
+          ),
+        );
+      }
     } catch (e) {
       // Dismiss loading indicator
       if (context.mounted) Navigator.pop(context);
       
-      // Show error message
+      // Show error message with more details
       if (context.mounted) {
         _authService.showErrorDialog(context, 'Google login failed: ${e.toString()}');
       }
+      print("Google login error details: $e");
     }
   }
 
@@ -260,17 +273,17 @@ class SignUpScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () => signInWithGoogle(context),
               style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
               child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset('lib/assets/images/google_logo.png', height: 24, width: 24),
-                SizedBox(width: 12),
-                Text('Login with Google', style: TextStyle(color: Colors.black, fontSize: 16)),
-              ],
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset('lib/assets/images/google_logo.png', height: 24, width: 24),
+                  SizedBox(width: 12),
+                  Text('Login with Google', style: TextStyle(color: Colors.black, fontSize: 16)),
+                ],
               ),
             ),
             SizedBox(height: 16),

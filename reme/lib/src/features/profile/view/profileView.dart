@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:reme/src/features/auth/Views/authGate.dart'; // Add this import
+import 'package:reme/src/features/auth/Views/authView.dart';
 import 'package:reme/src/features/profile/services/profileServices.dart';
 
 import 'package:reme/src/features/diagnosis/views/custom_camera_screen.dart';
@@ -196,7 +197,7 @@ class _MyPageScreenState extends State<MyPageScreen> {
                   if (context.mounted) {
                     Navigator.of(context).pushAndRemoveUntil(
                       MaterialPageRoute(
-                        builder: (context) => const Authgate(),
+                        builder: (context) =>  SignUpScreen(),
                       ),
                       (route) => false,
                     );

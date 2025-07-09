@@ -3,12 +3,14 @@ import 'dart:io';
 import 'dart:math' as Math;
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:reme/src/features/auth/Views/authView.dart';
 import 'package:reme/src/features/diagnosis/views/detailedAnalysisScreen.dart';
 import 'package:reme/src/features/home/views/homeView.dart';
 import 'package:reme/src/features/home/widgets/recommendedCard.dart';
 import 'package:reme/src/widgets/customButton.dart';
 import 'package:reme/src/features/shared/radiusChart.dart';
 import 'package:reme/src/features/auth/Views/authGate.dart';
+
 
 
 class AnalysisResultsScreen extends StatelessWidget {
@@ -222,7 +224,7 @@ class AnalysisResultsScreen extends StatelessWidget {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => Authgate(
+                          builder: (context) => SignUpScreen(
                             // Pass the analysis data to be used after login
                             pendingAnalysisData: {
                               'faceImage': faceImage,
