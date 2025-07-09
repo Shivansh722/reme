@@ -144,7 +144,7 @@ class SignUpScreen extends StatelessWidget {
     );
   }
 
-  Widget buildButton(String text, VoidCallback onPressed, {Color color = Colors.pinkAccent, Color textColor = Colors.white}) {
+  Widget buildButton(String text, VoidCallback onPressed, {Color color = const Color(0xFFEB7B8F), Color textColor = Colors.white}) {
     return SizedBox(
       width: double.infinity,
       height: 48,
@@ -257,11 +257,39 @@ class SignUpScreen extends StatelessWidget {
             Center(child: Text('Already have an account?', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
             SizedBox(height: 16),
       
-            buildLoginButtonWithIcon('Login with Google', Icons.g_mobiledata, Colors.white, Colors.black, 
-              () => signInWithGoogle(context)),
+            ElevatedButton(
+              onPressed: () => signInWithGoogle(context),
+              style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+              child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('lib/assets/images/google_logo.png', height: 24, width: 24),
+                SizedBox(width: 12),
+                Text('Login with Google', style: TextStyle(color: Colors.black, fontSize: 16)),
+              ],
+              ),
+            ),
             SizedBox(height: 16),
-            buildLoginButtonWithIcon('Login with LINE', Icons.chat_bubble_outline, Colors.green, Colors.white,
-              () => signInWithLine(context)),
+            ElevatedButton(
+              onPressed: () => signInWithLine(context),
+              style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+              child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('lib/assets/images/line_logo_white.png', height: 24, width: 24),
+                SizedBox(width: 12),
+                Text('Login with LINE', style: TextStyle(color: Colors.white, fontSize: 16)),
+              ],
+              ),
+            ),
             SizedBox(height: 32),
       
             // Login fields - now using separate controllers
