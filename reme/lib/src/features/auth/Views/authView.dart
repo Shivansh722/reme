@@ -5,55 +5,19 @@ import 'package:reme/src/features/home/views/homeView.dart';
 import 'package:reme/src/helpers/helper_functions.dart';
 
 class SignUpScreen extends StatelessWidget {
+  // Controllers for sign up
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
+  
+  // Additional controllers for login
+  final TextEditingController loginEmailController = TextEditingController();
+  final TextEditingController loginPasswordController = TextEditingController();
+  
   final Authservice _authService = Authservice();
   final Map<String, dynamic>? pendingAnalysisData;
   
   SignUpScreen({Key? key, this.pendingAnalysisData}) : super(key: key);
-
-  // Registration with email/password
-  void registerUser(BuildContext context) async {
-    // Show loading indicator
-    showDialog(
-      context: context,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
-
-    try {
-      // Register the user with Firebase
-      UserCredential? userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: emailController.text,
-        password: passwordController.text,
-      );
-      
-      // Dismiss loading indicator
-      if (context.mounted) Navigator.pop(context);
-      
-      // Navigate to home view
-      if (context.mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomeviewMain(
-              initialTab: 3,
-              faceImage: pendingAnalysisData?['faceImage'],
-              analysisResult: pendingAnalysisData?['analysisResult'],
-              scores: pendingAnalysisData?['scores'],
-            ),
-          ),
-        );
-      }
-    } on FirebaseAuthException catch (e) {
-      // Dismiss loading indicator
-      if (context.mounted) Navigator.pop(context);
-      
-      // Show error message
-      if (context.mounted) {
-        _authService.showErrorDialog(context, e.message ?? 'Registration failed');
-      }
-    }
-  }
 
   // Login with email/password
   void loginUser(BuildContext context) async {
@@ -64,10 +28,10 @@ class SignUpScreen extends StatelessWidget {
     );
 
     try {
-      // Sign in the user with Firebase
+      // Sign in the user with Firebase - use login controllers here
       await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text,
-        password: passwordController.text,
+        email: loginEmailController.text,
+        password: loginPasswordController.text,
       );
       
       // Dismiss loading indicator
@@ -93,7 +57,7 @@ class SignUpScreen extends StatelessWidget {
       
       // Show error message
       if (context.mounted) {
-        _authService.showErrorDialog(context, e.message ?? 'ログインに失敗しました');
+        _authService.showErrorDialog(context, e.message ?? 'Login failed');
       }
     }
   }
@@ -121,7 +85,7 @@ class SignUpScreen extends StatelessWidget {
       
       // Show error message
       if (context.mounted) {
-        _authService.showErrorDialog(context, 'Googleログインに失敗しました: ${e.toString()}');
+        _authService.showErrorDialog(context, 'Google login failed: ${e.toString()}');
       }
     }
   }
@@ -150,7 +114,7 @@ class SignUpScreen extends StatelessWidget {
       
       // Show error message
       if (context.mounted) {
-        _authService.showErrorDialog(context, 'LINEログインに失敗しました: ${e.toString()}');
+        _authService.showErrorDialog(context, 'LINE login failed: ${e.toString()}');
       }
     }
   }
@@ -163,7 +127,7 @@ class SignUpScreen extends StatelessWidget {
         SizedBox(height: 8),
         TextField(
           controller: controller,
-          obscureText: label == 'パスワード', // Enable obscureText for password fields
+          obscureText: label == 'Password' || label == 'Confirm Password', // Enable obscureText for password fields
           decoration: InputDecoration(
             hintText: hint,
             filled: true,
@@ -180,7 +144,7 @@ class SignUpScreen extends StatelessWidget {
     );
   }
 
-  Widget buildButton(String text, VoidCallback onPressed, {Color color = Colors.pinkAccent, Color textColor = Colors.white}) {
+  Widget buildButton(String text, VoidCallback onPressed, {Color color = const Color(0xFFEB7B8F), Color textColor = Colors.white}) {
     return SizedBox(
       width: double.infinity,
       height: 48,
@@ -215,61 +179,137 @@ class SignUpScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('会員登録', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              SizedBox(height: 24),
-
-              buildTextField('メールアドレス', 'メールアドレスを入力して下さい', emailController),
-              buildTextField('パスワード', 'パスワードを入力して下さい', passwordController),
-
-              Text.rich(
-                TextSpan(
-                  text: '利用規約',
-                  style: TextStyle(color: Colors.blue, fontSize: 12),
-                  children: [
-                    TextSpan(text: '及び'),
-                    TextSpan(text: 'プライバシーポリシー', style: TextStyle(color: Colors.blue)),
-                    TextSpan(text: 'に同意の上、登録又はログインへお進みください。'),
-                  ],
-                ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 56),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Sign Up', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            SizedBox(height: 24),
+      
+            // Sign up fields
+            buildTextField('Email', 'Enter your email address', emailController),
+            buildTextField('Password', 'Enter your password', passwordController),
+            buildTextField('Confirm Password', 'Confirm your password', confirmPasswordController),
+      
+            // Terms and privacy policy
+            Text.rich(
+              TextSpan(
+                text: 'Terms of Service',
+                style: TextStyle(color: Colors.blue, fontSize: 12),
+                children: [
+                  TextSpan(text: ' and '),
+                  TextSpan(text: 'Privacy Policy', style: TextStyle(color: Colors.blue)),
+                  TextSpan(text: '. Please proceed to register or login after agreement.'),
+                ],
               ),
-              SizedBox(height: 16),
-              buildButton('新規会員登録', () => registerUser(context)),
-
-              SizedBox(height: 32),
-              Center(child: Text('アカウントをお持ちの方', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
-              SizedBox(height: 16),
-
-              buildLoginButtonWithIcon('Googleログイン', Icons.g_mobiledata, Colors.white, Colors.black, 
-                () => signInWithGoogle(context)),
-              SizedBox(height: 16),
-              buildLoginButtonWithIcon('LINEログイン', Icons.chat_bubble_outline, Colors.green, Colors.white,
-                () => signInWithLine(context)),
-              SizedBox(height: 32),
-
-              buildTextField('メールアドレス', 'メールアドレスを入力して下さい', emailController),
-              buildTextField('パスワード', 'パスワードを入力して下さい', passwordController),
-
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: OutlinedButton.icon(
-                  onPressed: () => loginUser(context),
-                  icon: Icon(Icons.mail_outline, color: Colors.pinkAccent),
-                  label: Text('ログイン', style: TextStyle(color: Colors.pinkAccent)),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.pinkAccent),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
+            SizedBox(height: 16),
+            buildButton('Register New Account', () {
+              // Check if passwords match
+              if (passwordController.text != confirmPasswordController.text) {
+              _authService.showErrorDialog(context, 'Passwords do not match');
+              return;
+              }
+              
+              // Show loading indicator
+              showDialog(
+              context: context,
+              builder: (context) => const Center(child: CircularProgressIndicator()),
+              );
+              
+              // Create user with email and password
+              FirebaseAuth.instance.createUserWithEmailAndPassword(
+              email: emailController.text,
+              password: passwordController.text,
+              ).then((userCredential) {
+              // Dismiss loading indicator
+              if (context.mounted) Navigator.pop(context);
+              
+              // Navigate to home view
+              if (context.mounted) {
+                Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => HomeviewMain(
+                  initialTab: 3,
+                  faceImage: pendingAnalysisData?['faceImage'],
+                  analysisResult: pendingAnalysisData?['analysisResult'],
+                  scores: pendingAnalysisData?['scores'],
                   ),
                 ),
+                );
+              }
+              }).catchError((e) {
+              // Dismiss loading indicator
+              if (context.mounted) Navigator.pop(context);
+              
+              // Show error message
+              if (context.mounted && e is FirebaseAuthException) {
+                _authService.showErrorDialog(context, e.message ?? 'Registration failed');
+              } else if (context.mounted) {
+                _authService.showErrorDialog(context, 'Registration failed: ${e.toString()}');
+              }
+              });
+            }),
+      
+            SizedBox(height: 32),
+            Center(child: Text('Already have an account?', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+            SizedBox(height: 16),
+      
+            ElevatedButton(
+              onPressed: () => signInWithGoogle(context),
+              style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
-            ],
-          ),
+              child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('lib/assets/images/google_logo.png', height: 24, width: 24),
+                SizedBox(width: 12),
+                Text('Login with Google', style: TextStyle(color: Colors.black, fontSize: 16)),
+              ],
+              ),
+            ),
+            SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => signInWithLine(context),
+              style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              ),
+              child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('lib/assets/images/line_logo_white.png', height: 24, width: 24),
+                SizedBox(width: 12),
+                Text('Login with LINE', style: TextStyle(color: Colors.white, fontSize: 16)),
+              ],
+              ),
+            ),
+            SizedBox(height: 32),
+      
+            // Login fields - now using separate controllers
+            buildTextField('Email', 'Enter your email address', loginEmailController),
+            buildTextField('Password', 'Enter your password', loginPasswordController),
+      
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: OutlinedButton.icon(
+                onPressed: () => loginUser(context),
+                icon: Icon(Icons.mail_outline, color: Colors.pinkAccent),
+                label: Text('Login', style: TextStyle(color: Colors.pinkAccent)),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: Colors.pinkAccent),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
