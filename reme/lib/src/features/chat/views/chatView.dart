@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:reme/src/features/chat/services/geminiService.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -33,8 +36,17 @@ class _ChatScreenState extends State<ChatScreen> {
 
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  late GeminiService _geminiService;
+  bool _isWaitingForResponse = false;
 
-  void _sendMessage(String text) {
+  @override
+  void initState() {
+    super.initState();
+    // Use the same API key from .env file instead of hardcoding
+    _geminiService = GeminiService(apiKey: dotenv.env['GEMINI_API_KEY'] ?? '');
+  }
+
+  void _sendMessage(String text) async {
     if (text.trim().isEmpty) return;
 
     setState(() {
@@ -44,24 +56,59 @@ class _ChatScreenState extends State<ChatScreen> {
         'hasLink': false,
         'isAnimating': true,
       });
+      _isWaitingForResponse = true;
     });
 
     _textController.clear();
 
     // Scroll to bottom after message is added
-    Future.delayed(const Duration(milliseconds: 100), () {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
-      );
-    });
+    _scrollToBottom();
 
     // Remove animation flag after animation completes
     Future.delayed(const Duration(milliseconds: 500), () {
       setState(() {
         _messages.last['isAnimating'] = false;
       });
+    });
+
+    // Get response from Gemini
+    try {
+      final response = await _geminiService.generateContent(text);
+      setState(() {
+        _messages.add({
+          'message': response,
+          'isSender': false,
+          'hasLink': false,
+          'showOptions': false, // By default don't show options
+          // Only add options when needed based on your app logic
+          // 'options': ['Option 1', 'Option 2', 'Option 3'], // Uncomment when needed
+        });
+        _isWaitingForResponse = false;
+      });
+      // Scroll to show the response
+      _scrollToBottom();
+    } catch (e) {
+      setState(() {
+        _messages.add({
+          'message': 'Sorry, I encountered an error: $e',
+          'isSender': false,
+          'hasLink': false,
+        });
+        _isWaitingForResponse = false;
+      });
+      _scrollToBottom();
+    }
+  }
+
+  void _scrollToBottom() {
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_scrollController.hasClients) {
+        _scrollController.animateTo(
+          _scrollController.position.maxScrollExtent,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
     });
   }
 
@@ -86,6 +133,20 @@ class _ChatScreenState extends State<ChatScreen> {
                 scrollController: _scrollController,
               ),
             ),
+            if (_isWaitingForResponse)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8.0),
+                child: Center(
+                  child: SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.pinkAccent,
+                    ),
+                  ),
+                ),
+              ),
             ChatInputField(
               controller: _textController,
               onSend: _sendMessage,
@@ -112,25 +173,35 @@ class ChatMessages extends StatelessWidget {
     return ListView.builder(
       controller: scrollController,
       padding: const EdgeInsets.all(12),
-      itemCount: messages.length + 4, // Adding space for radio options
+      itemCount: messages.length, // Remove the +4 to show only messages
       itemBuilder: (context, index) {
-        if (index < messages.length) {
-          return ChatBubble(
-            message: messages[index]['message'],
-            isSender: messages[index]['isSender'],
-            hasLink: messages[index]['hasLink'] ?? false,
-            isAnimating: messages[index]['isAnimating'] ?? false,
-          );
-        } else if (index == messages.length) {
-          // Adding radio options after messages
-          return const RadioOption(text: '選択項目表示');
-        } else if (index == messages.length + 1) {
-          return const RadioOption(text: '選択項目表示');
-        } else if (index == messages.length + 2) {
-          return const RadioOption(text: '選択項目表示');
-        } else {
-          return const RadioOption(text: '選択項目表示');
-        }
+        final message = messages[index];
+        
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ChatBubble(
+              message: message['message'],
+              isSender: message['isSender'],
+              hasLink: message['hasLink'] ?? false,
+              isAnimating: message['isAnimating'] ?? false,
+            ),
+            // Only show options for received messages (AI responses)
+            if (!message['isSender'] && message['showOptions'] == true)
+              Padding(
+                padding: const EdgeInsets.only(top: 8, left: 12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: message['options']?.map<Widget>((option) => 
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4),
+                      child: RadioOption(text: option),
+                    )
+                  )?.toList() ?? [],
+                ),
+              ),
+          ],
+        );
       },
     );
   }

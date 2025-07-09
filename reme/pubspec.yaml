@@ -50,6 +50,7 @@ dependencies:
   fl_chart: ^1.0.0
   photo_manager: ^3.7.1
   shared_preferences: ^2.5.3
+  google_generative_ai: ^0.4.7
 
 dev_dependencies:
   flutter_test:
