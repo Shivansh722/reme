@@ -38,17 +38,27 @@ class SignUpScreen extends StatelessWidget {
       if (context.mounted) Navigator.pop(context);
       
       // Navigate to home view
-      if (context.mounted) {
+      // First ensure context is still valid
+      if (!context.mounted) return;
+
+      // Add error handling for navigation
+      try {
         Navigator.pushReplacement(
           context,
           MaterialPageRoute(
             builder: (context) => HomeviewMain(
               initialTab: 3,
               faceImage: pendingAnalysisData?['faceImage'],
-              analysisResult: pendingAnalysisData?['analysisResult'],
+              analysisResult: pendingAnalysisData?['analysisResult'], 
               scores: pendingAnalysisData?['scores'],
             ),
           ),
+        );
+      } catch (e) {
+        print("Navigation error: $e");
+        // Show fallback error to user
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error navigating to home screen")),
         );
       }
     } on FirebaseAuthException catch (e) {
@@ -77,16 +87,29 @@ class SignUpScreen extends StatelessWidget {
       // Dismiss loading indicator
       if (context.mounted) Navigator.pop(context);
       
-      // Firebase Auth state changes will handle navigation via AuthGate
-      
+      // Explicitly navigate to home view after successful sign-in
+      if (context.mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeviewMain(
+              initialTab: 3,
+              faceImage: pendingAnalysisData?['faceImage'],
+              analysisResult: pendingAnalysisData?['analysisResult'],
+              scores: pendingAnalysisData?['scores'],
+            ),
+          ),
+        );
+      }
     } catch (e) {
       // Dismiss loading indicator
       if (context.mounted) Navigator.pop(context);
       
-      // Show error message
+      // Show error message with more details
       if (context.mounted) {
         _authService.showErrorDialog(context, 'Google login failed: ${e.toString()}');
       }
+      print("Google login error details: $e");
     }
   }
 
@@ -208,48 +231,54 @@ class SignUpScreen extends StatelessWidget {
             buildButton('Register New Account', () {
               // Check if passwords match
               if (passwordController.text != confirmPasswordController.text) {
-              _authService.showErrorDialog(context, 'Passwords do not match');
-              return;
+                _authService.showErrorDialog(context, 'Passwords do not match');
+                return;
               }
               
               // Show loading indicator
               showDialog(
-              context: context,
-              builder: (context) => const Center(child: CircularProgressIndicator()),
+                context: context,
+                builder: (context) => const Center(child: CircularProgressIndicator()),
               );
               
               // Create user with email and password
               FirebaseAuth.instance.createUserWithEmailAndPassword(
-              email: emailController.text,
-              password: passwordController.text,
-              ).then((userCredential) {
-              // Dismiss loading indicator
-              if (context.mounted) Navigator.pop(context);
-              
-              // Navigate to home view
-              if (context.mounted) {
-                Navigator.pushReplacement(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => HomeviewMain(
-                  initialTab: 3,
-                  faceImage: pendingAnalysisData?['faceImage'],
-                  analysisResult: pendingAnalysisData?['analysisResult'],
-                  scores: pendingAnalysisData?['scores'],
-                  ),
-                ),
+                email: emailController.text,
+                password: passwordController.text,
+              ).then((userCredential) async {
+                // Save user data to Firestore
+                await _authService.saveEmailPasswordUserData(
+                  userCredential.user!,
+                  null, // You could add a name field to your form if desired
                 );
-              }
+                
+                // Dismiss loading indicator
+                if (context.mounted) Navigator.pop(context);
+                
+                // Navigate to home view
+                if (context.mounted) {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => HomeviewMain(
+                        initialTab: 3,
+                        faceImage: pendingAnalysisData?['faceImage'],
+                        analysisResult: pendingAnalysisData?['analysisResult'],
+                        scores: pendingAnalysisData?['scores'],
+                      ),
+                    ),
+                  );
+                }
               }).catchError((e) {
-              // Dismiss loading indicator
-              if (context.mounted) Navigator.pop(context);
-              
-              // Show error message
-              if (context.mounted && e is FirebaseAuthException) {
-                _authService.showErrorDialog(context, e.message ?? 'Registration failed');
-              } else if (context.mounted) {
-                _authService.showErrorDialog(context, 'Registration failed: ${e.toString()}');
-              }
+                // Dismiss loading indicator
+                if (context.mounted) Navigator.pop(context);
+                
+                // Show error message
+                if (context.mounted && e is FirebaseAuthException) {
+                  _authService.showErrorDialog(context, e.message ?? 'Registration failed');
+                } else if (context.mounted) {
+                  _authService.showErrorDialog(context, 'Registration failed: ${e.toString()}');
+                }
               });
             }),
       
@@ -260,17 +289,17 @@ class SignUpScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () => signInWithGoogle(context),
               style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                backgroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               ),
               child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset('lib/assets/images/google_logo.png', height: 24, width: 24),
-                SizedBox(width: 12),
-                Text('Login with Google', style: TextStyle(color: Colors.black, fontSize: 16)),
-              ],
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Image.asset('lib/assets/images/google_logo.png', height: 24, width: 24),
+                  SizedBox(width: 12),
+                  Text('Login with Google', style: TextStyle(color: Colors.black, fontSize: 16)),
+                ],
               ),
             ),
             SizedBox(height: 16),
