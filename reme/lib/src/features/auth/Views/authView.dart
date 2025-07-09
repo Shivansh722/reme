@@ -5,62 +5,19 @@ import 'package:reme/src/features/home/views/homeView.dart';
 import 'package:reme/src/helpers/helper_functions.dart';
 
 class SignUpScreen extends StatelessWidget {
+  // Controllers for sign up
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController confirmPasswordController = TextEditingController();
+  
+  // Additional controllers for login
+  final TextEditingController loginEmailController = TextEditingController();
+  final TextEditingController loginPasswordController = TextEditingController();
+  
   final Authservice _authService = Authservice();
   final Map<String, dynamic>? pendingAnalysisData;
   
   SignUpScreen({Key? key, this.pendingAnalysisData}) : super(key: key);
-
-  // Registration with email/password
-  void registerUser(BuildContext context) async {
-    // Check if passwords match
-    if (passwordController.text != confirmPasswordController.text) {
-      _authService.showErrorDialog(context, 'Passwords do not match');
-      return;
-    }
-    
-    // Show loading indicator
-    showDialog(
-      context: context,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
-
-    try {
-      // Register the user with Firebase
-      UserCredential? userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: emailController.text,
-        password: passwordController.text,
-      );
-      
-      // Dismiss loading indicator
-      if (context.mounted) Navigator.pop(context);
-      
-      // Navigate to home view
-      if (context.mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => HomeviewMain(
-              initialTab: 3,
-              faceImage: pendingAnalysisData?['faceImage'],
-              analysisResult: pendingAnalysisData?['analysisResult'],
-              scores: pendingAnalysisData?['scores'],
-            ),
-          ),
-        );
-      }
-    } on FirebaseAuthException catch (e) {
-      // Dismiss loading indicator
-      if (context.mounted) Navigator.pop(context);
-      
-      // Show error message
-      if (context.mounted) {
-        _authService.showErrorDialog(context, e.message ?? 'Registration failed');
-      }
-    }
-  }
 
   // Login with email/password
   void loginUser(BuildContext context) async {
@@ -71,10 +28,10 @@ class SignUpScreen extends StatelessWidget {
     );
 
     try {
-      // Sign in the user with Firebase
+      // Sign in the user with Firebase - use login controllers here
       await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text,
-        password: passwordController.text,
+        email: loginEmailController.text,
+        password: loginPasswordController.text,
       );
       
       // Dismiss loading indicator
@@ -230,10 +187,12 @@ class SignUpScreen extends StatelessWidget {
             Text('Sign Up', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             SizedBox(height: 24),
       
+            // Sign up fields
             buildTextField('Email', 'Enter your email address', emailController),
             buildTextField('Password', 'Enter your password', passwordController),
             buildTextField('Confirm Password', 'Confirm your password', confirmPasswordController),
       
+            // Terms and privacy policy
             Text.rich(
               TextSpan(
                 text: 'Terms of Service',
@@ -246,7 +205,53 @@ class SignUpScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 16),
-            buildButton('Register New Account', () => registerUser(context)),
+            buildButton('Register New Account', () {
+              // Check if passwords match
+              if (passwordController.text != confirmPasswordController.text) {
+              _authService.showErrorDialog(context, 'Passwords do not match');
+              return;
+              }
+              
+              // Show loading indicator
+              showDialog(
+              context: context,
+              builder: (context) => const Center(child: CircularProgressIndicator()),
+              );
+              
+              // Create user with email and password
+              FirebaseAuth.instance.createUserWithEmailAndPassword(
+              email: emailController.text,
+              password: passwordController.text,
+              ).then((userCredential) {
+              // Dismiss loading indicator
+              if (context.mounted) Navigator.pop(context);
+              
+              // Navigate to home view
+              if (context.mounted) {
+                Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => HomeviewMain(
+                  initialTab: 3,
+                  faceImage: pendingAnalysisData?['faceImage'],
+                  analysisResult: pendingAnalysisData?['analysisResult'],
+                  scores: pendingAnalysisData?['scores'],
+                  ),
+                ),
+                );
+              }
+              }).catchError((e) {
+              // Dismiss loading indicator
+              if (context.mounted) Navigator.pop(context);
+              
+              // Show error message
+              if (context.mounted && e is FirebaseAuthException) {
+                _authService.showErrorDialog(context, e.message ?? 'Registration failed');
+              } else if (context.mounted) {
+                _authService.showErrorDialog(context, 'Registration failed: ${e.toString()}');
+              }
+              });
+            }),
       
             SizedBox(height: 32),
             Center(child: Text('Already have an account?', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
@@ -259,8 +264,9 @@ class SignUpScreen extends StatelessWidget {
               () => signInWithLine(context)),
             SizedBox(height: 32),
       
-            buildTextField('Email', 'Enter your email address', emailController),
-            buildTextField('Password', 'Enter your password', passwordController),
+            // Login fields - now using separate controllers
+            buildTextField('Email', 'Enter your email address', loginEmailController),
+            buildTextField('Password', 'Enter your password', loginPasswordController),
       
             SizedBox(
               width: double.infinity,
