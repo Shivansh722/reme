@@ -50,6 +50,9 @@ class _HomeviewMainState extends State<HomeviewMain> {
   }
 
   Widget _getBody() {
+    if (_currentIndex == 3 && widget.scores == null) {
+      return DetailedAnalysisScreen(); // No params, will load from Firestore
+    }
     switch (_currentIndex) {
       case 0:
         return DiagnosisScreen();
