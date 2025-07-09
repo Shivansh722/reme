@@ -7,6 +7,7 @@ import 'package:reme/src/helpers/helper_functions.dart';
 class SignUpScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
+  final TextEditingController confirmPasswordController = TextEditingController();
   final Authservice _authService = Authservice();
   final Map<String, dynamic>? pendingAnalysisData;
   
@@ -14,6 +15,12 @@ class SignUpScreen extends StatelessWidget {
 
   // Registration with email/password
   void registerUser(BuildContext context) async {
+    // Check if passwords match
+    if (passwordController.text != confirmPasswordController.text) {
+      _authService.showErrorDialog(context, 'Passwords do not match');
+      return;
+    }
+    
     // Show loading indicator
     showDialog(
       context: context,
@@ -93,7 +100,7 @@ class SignUpScreen extends StatelessWidget {
       
       // Show error message
       if (context.mounted) {
-        _authService.showErrorDialog(context, e.message ?? 'ログインに失敗しました');
+        _authService.showErrorDialog(context, e.message ?? 'Login failed');
       }
     }
   }
@@ -121,7 +128,7 @@ class SignUpScreen extends StatelessWidget {
       
       // Show error message
       if (context.mounted) {
-        _authService.showErrorDialog(context, 'Googleログインに失敗しました: ${e.toString()}');
+        _authService.showErrorDialog(context, 'Google login failed: ${e.toString()}');
       }
     }
   }
@@ -150,7 +157,7 @@ class SignUpScreen extends StatelessWidget {
       
       // Show error message
       if (context.mounted) {
-        _authService.showErrorDialog(context, 'LINEログインに失敗しました: ${e.toString()}');
+        _authService.showErrorDialog(context, 'LINE login failed: ${e.toString()}');
       }
     }
   }
@@ -163,7 +170,7 @@ class SignUpScreen extends StatelessWidget {
         SizedBox(height: 8),
         TextField(
           controller: controller,
-          obscureText: label == 'パスワード', // Enable obscureText for password fields
+          obscureText: label == 'Password' || label == 'Confirm Password', // Enable obscureText for password fields
           decoration: InputDecoration(
             hintText: hint,
             filled: true,
@@ -215,61 +222,60 @@ class SignUpScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('会員登録', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-              SizedBox(height: 24),
-
-              buildTextField('メールアドレス', 'メールアドレスを入力して下さい', emailController),
-              buildTextField('パスワード', 'パスワードを入力して下さい', passwordController),
-
-              Text.rich(
-                TextSpan(
-                  text: '利用規約',
-                  style: TextStyle(color: Colors.blue, fontSize: 12),
-                  children: [
-                    TextSpan(text: '及び'),
-                    TextSpan(text: 'プライバシーポリシー', style: TextStyle(color: Colors.blue)),
-                    TextSpan(text: 'に同意の上、登録又はログインへお進みください。'),
-                  ],
+      body: SingleChildScrollView(
+        padding: EdgeInsets.symmetric(horizontal: 24, vertical: 56),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Sign Up', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            SizedBox(height: 24),
+      
+            buildTextField('Email', 'Enter your email address', emailController),
+            buildTextField('Password', 'Enter your password', passwordController),
+            buildTextField('Confirm Password', 'Confirm your password', confirmPasswordController),
+      
+            Text.rich(
+              TextSpan(
+                text: 'Terms of Service',
+                style: TextStyle(color: Colors.blue, fontSize: 12),
+                children: [
+                  TextSpan(text: ' and '),
+                  TextSpan(text: 'Privacy Policy', style: TextStyle(color: Colors.blue)),
+                  TextSpan(text: '. Please proceed to register or login after agreement.'),
+                ],
+              ),
+            ),
+            SizedBox(height: 16),
+            buildButton('Register New Account', () => registerUser(context)),
+      
+            SizedBox(height: 32),
+            Center(child: Text('Already have an account?', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+            SizedBox(height: 16),
+      
+            buildLoginButtonWithIcon('Login with Google', Icons.g_mobiledata, Colors.white, Colors.black, 
+              () => signInWithGoogle(context)),
+            SizedBox(height: 16),
+            buildLoginButtonWithIcon('Login with LINE', Icons.chat_bubble_outline, Colors.green, Colors.white,
+              () => signInWithLine(context)),
+            SizedBox(height: 32),
+      
+            buildTextField('Email', 'Enter your email address', emailController),
+            buildTextField('Password', 'Enter your password', passwordController),
+      
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: OutlinedButton.icon(
+                onPressed: () => loginUser(context),
+                icon: Icon(Icons.mail_outline, color: Colors.pinkAccent),
+                label: Text('Login', style: TextStyle(color: Colors.pinkAccent)),
+                style: OutlinedButton.styleFrom(
+                  side: BorderSide(color: Colors.pinkAccent),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
               ),
-              SizedBox(height: 16),
-              buildButton('新規会員登録', () => registerUser(context)),
-
-              SizedBox(height: 32),
-              Center(child: Text('アカウントをお持ちの方', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
-              SizedBox(height: 16),
-
-              buildLoginButtonWithIcon('Googleログイン', Icons.g_mobiledata, Colors.white, Colors.black, 
-                () => signInWithGoogle(context)),
-              SizedBox(height: 16),
-              buildLoginButtonWithIcon('LINEログイン', Icons.chat_bubble_outline, Colors.green, Colors.white,
-                () => signInWithLine(context)),
-              SizedBox(height: 32),
-
-              buildTextField('メールアドレス', 'メールアドレスを入力して下さい', emailController),
-              buildTextField('パスワード', 'パスワードを入力して下さい', passwordController),
-
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: OutlinedButton.icon(
-                  onPressed: () => loginUser(context),
-                  icon: Icon(Icons.mail_outline, color: Colors.pinkAccent),
-                  label: Text('ログイン', style: TextStyle(color: Colors.pinkAccent)),
-                  style: OutlinedButton.styleFrom(
-                    side: BorderSide(color: Colors.pinkAccent),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                ),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
