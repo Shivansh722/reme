@@ -84,7 +84,7 @@ class FirestoreService {
   }
   
   // Get user's analysis history
-  Future<List<Map<String, dynamic>>> getAnalysisHistory(String userId) async {
+  Future<List<Map<String, dynamic>>> getAnalysisHistory(String userId, {required int limit}) async {
     final querySnapshot = await getUserDocument(userId)
         .collection('skinAnalysis')
         .orderBy('timestamp', descending: true)

@@ -1,11 +1,14 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:reme/src/features/home/widgets/recommendedCard.dart';
 import 'package:reme/src/features/shared/Widgets/bottom_nav_bar.dart';
 import 'package:reme/src/features/diagnosis/views/custom_camera_screen.dart';
 import 'package:reme/src/features/chat/views/chatView.dart';
 import 'package:reme/src/features/profile/view/profileView.dart';
-import 'package:reme/src/features/diagnosis/views/detailedAnalysisScreen.dart'; // Add this import
+import 'package:reme/src/features/diagnosis/views/detailedAnalysisScreen.dart';
+import 'package:reme/src/features/diagnosis/widgets/historyChart.dart';
+import 'package:reme/src/features/shared/services/firestore_service.dart';
 
 class HomeviewMain extends StatefulWidget {
   final int initialTab;
@@ -84,7 +87,68 @@ class _HomeviewMainState extends State<HomeviewMain> {
   }
 }
 
-class DiagnosisScreen extends StatelessWidget {
+class DiagnosisScreen extends StatefulWidget {
+  @override
+  State<DiagnosisScreen> createState() => _DiagnosisScreenState();
+}
+
+class _DiagnosisScreenState extends State<DiagnosisScreen> {
+  bool _isLoading = true;
+  List<Map<String, dynamic>> _historyEntries = [];
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAnalysisHistory();
+  }
+
+  Future<void> _loadAnalysisHistory() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      setState(() {
+        _isLoading = false;
+      });
+      return;
+    }
+
+    try {
+      final firestoreService = FirestoreService();
+      final analysisHistory = await firestoreService.getAnalysisHistory(
+        user.uid,
+        limit: 3, // Just show the most recent 3 entries
+      );
+
+      setState(() {
+        _historyEntries = analysisHistory;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
+      print('Error loading analysis history: $e');
+    }
+  }
+
+  void _viewAnalysisDetails(Map<String, dynamic> analysis) {
+    // Convert stored scores to the expected Map<String, int> format
+    final Map<String, dynamic> rawScores = analysis['scores'] as Map<String, dynamic>;
+    final Map<String, int> scores = rawScores.map(
+      (key, value) => MapEntry(key, value is int ? value : (value as num).toInt()),
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => DetailedAnalysisScreen(
+          analysisResult: analysis['analysisResult'] as String? ?? '',
+          scores: scores,
+        ),
+      ),
+    );
+  }
+
   Widget checklistItem(bool checked, String text) => CheckboxListTile(
         value: checked,
         onChanged: (_) {},
@@ -116,8 +180,6 @@ class DiagnosisScreen extends StatelessWidget {
                   Text('最新の診断結果',
                       style: TextStyle(
                           fontWeight: FontWeight.bold, fontSize: 16)),
-
-                
 
                   Text('もっと見る',
                       style: TextStyle(color: Colors.blue)),
@@ -195,6 +257,41 @@ class DiagnosisScreen extends StatelessWidget {
               ),
               SizedBox(height: 24),
 
+              // Add history chart here
+              _isLoading 
+                ? Center(child: CircularProgressIndicator())
+                : _historyEntries.isEmpty
+                  ? Center(
+                      child: Text('診断履歴がありません', style: TextStyle(fontSize: 14)),
+                    )
+                  : Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('診断履歴',
+                                style: TextStyle(
+                                    fontWeight: FontWeight.bold, fontSize: 16)),
+                            GestureDetector(
+                              onTap: () {
+                                // Navigate to full history
+                              },
+                              child: Text('もっと見る',
+                                  style: TextStyle(color: Colors.blue)),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 12),
+                        SimpleSkinHistoryChart(
+                          historyEntries: _historyEntries,
+                          onEntryTap: _viewAnalysisDetails,
+                        ),
+                      ],
+                    ),
+              
+              SizedBox(height: 24),
+
               Container(
                 padding: EdgeInsets.all(16),
                 decoration: BoxDecoration(
@@ -232,19 +329,17 @@ class DiagnosisScreen extends StatelessWidget {
                   onPressed: () {},
                   style: OutlinedButton.styleFrom(
                     minimumSize: Size(300, 48),
-                      
                       foregroundColor: Colors.pink,
                       side: BorderSide(color: Colors.pink)),
                   child: Text('再診断する'),
                 ),
-              )
+              ),
             ],
           ),
 
           SizedBox(height: 24),
-
-
-            Container(
+          
+          Container(
             padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.pink[50]?.withOpacity(0.5),
@@ -289,17 +384,16 @@ class DiagnosisScreen extends StatelessWidget {
            Row(
              children: [
                ProductCard(
-                           title: '母袋有機農場シリーズ...',
-                           description: '栄養豊富なヘチマ水がすっと浸透、繊細な肌を包み込み',
-                           price: '¥1,234(税込)',
-                         ),
+                 title: '母袋有機農場シリーズ...',
+                 description: '栄養豊富なヘチマ水がすっと浸透、繊細な肌を包み込み',
+                 price: '¥1,234(税込)',
+               ),
               SizedBox(width: 8),
-
-                         ProductCard(
-                           title: '母袋有機農場シリーズ...',
-                           description: '栄養豊富なヘチマ水がすっと浸透、繊細な肌を包み込み',
-                           price: '¥1,234(税込)',
-                         ),
+              ProductCard(
+                title: '母袋有機農場シリーズ...',
+                description: '栄養豊富なヘチマ水がすっと浸透、繊細な肌を包み込み',
+                price: '¥1,234(税込)',
+              ),
              ],
            ),
 
