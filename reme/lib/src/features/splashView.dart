@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:reme/src/features/auth/Views/authGate.dart';
 import 'package:reme/src/features/diagnosis/views/diagnosisView.dart';
+import 'package:reme/src/features/home/views/homeView.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Splashview extends StatefulWidget {
@@ -34,11 +36,28 @@ class _SplashviewState extends State<Splashview> {
     // Set timer to navigate after 2 seconds
     Timer(
       const Duration(seconds: 2),
-      () => Navigator.pushReplacement(
+      () => _navigateToNextScreen(),
+    );
+  }
+  
+  // Check auth state and navigate accordingly
+  void _navigateToNextScreen() {
+    // Check if user is logged in
+    final User? currentUser = FirebaseAuth.instance.currentUser;
+    
+    if (currentUser != null) {
+      // User is logged in, navigate to HomeviewMain
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const HomeviewMain()),
+      );
+    } else {
+      // User is not logged in, navigate to DiagnosisView (default flow)
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const DiagnosisView()),
-      ),
-    );
+      );
+    }
   }
 
   @override
