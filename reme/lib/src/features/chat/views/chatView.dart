@@ -173,12 +173,11 @@ class ChatMessages extends StatelessWidget {
     return ListView.builder(
       controller: scrollController,
       padding: const EdgeInsets.all(12),
-      itemCount: messages.length, // Remove the +4 to show only messages
+      itemCount: messages.length,
       itemBuilder: (context, index) {
         final message = messages[index];
         
         return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ChatBubble(
               message: message['message'],
@@ -190,16 +189,20 @@ class ChatMessages extends StatelessWidget {
             if (!message['isSender'] && message['showOptions'] == true)
               Padding(
                 padding: const EdgeInsets.only(top: 8, left: 12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: message['options']?.map<Widget>((option) => 
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4),
-                      child: RadioOption(text: option),
-                    )
-                  )?.toList() ?? [],
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: message['options']?.map<Widget>((option) => 
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: RadioOption(text: option),
+                      )
+                    )?.toList() ?? [],
+                  ),
                 ),
               ),
+            const SizedBox(height: 8),
           ],
         );
       },
@@ -230,7 +233,7 @@ class ChatBubble extends StatelessWidget {
         : const Color(0xFFF7F8FA);
 
     final textColor = isSender && isAnimating ? Colors.white : Colors.black87;
-    final align = isSender ? CrossAxisAlignment.end : CrossAxisAlignment.start;
+    final alignment = isSender ? Alignment.centerRight : Alignment.centerLeft;
     final radius = isSender
         ? const BorderRadius.only(
             topLeft: Radius.circular(16),
@@ -245,40 +248,39 @@ class ChatBubble extends StatelessWidget {
             bottomRight: Radius.circular(16),
           );
 
-    return Column(
-      crossAxisAlignment: align,
-      children: [
-        AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-          margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-          padding: const EdgeInsets.all(12),
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.7,
-          ),
-          decoration: BoxDecoration(
-            color: bubbleColor,
-            borderRadius: radius,
-          ),
-          child: hasLink
-              ? RichText(
-                  text: TextSpan(
-                    style: TextStyle(color: textColor, fontSize: 14),
-                    children: [
-                      TextSpan(text: message.replaceAll('テキストリンクなど', '')),
-                      TextSpan(
-                        text: 'テキストリンクなど',
-                        style: TextStyle(color: isAnimating ? Colors.white : Colors.blue),
-                      ),
-                    ],
-                  ),
-                )
-              : Text(
-                  message,
-                  style: TextStyle(fontSize: 14, color: textColor),
-                ),
+    return Container(
+      alignment: alignment,
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+        margin: const EdgeInsets.symmetric(horizontal: 8),
+        padding: const EdgeInsets.all(12),
+        constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.7,
         ),
-      ],
+        decoration: BoxDecoration(
+          color: bubbleColor,
+          borderRadius: radius,
+        ),
+        child: hasLink
+            ? RichText(
+                text: TextSpan(
+                  style: TextStyle(color: textColor, fontSize: 14),
+                  children: [
+                    TextSpan(text: message.replaceAll('テキストリンクなど', '')),
+                    TextSpan(
+                      text: 'テキストリンクなど',
+                      style: TextStyle(color: isAnimating ? Colors.white : Colors.blue),
+                    ),
+                  ],
+                ),
+              )
+            : Text(
+                message,
+                style: TextStyle(fontSize: 14, color: textColor),
+              ),
+      ),
     );
   }
 }
