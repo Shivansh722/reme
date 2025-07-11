@@ -1,9 +1,12 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:reme/src/features/diagnosis/widgets/circularProg.dart';
+import 'package:reme/src/features/diagnosis/widgets/historyChart.dart'; // Add this import
 import 'package:reme/src/features/shared/radiusChart.dart';
 import 'package:reme/src/features/shared/services/firestore_service.dart';
+import 'package:intl/intl.dart' as intl;
 
 class DetailedAnalysisScreen extends StatefulWidget {
   final File? faceImage;
@@ -26,6 +29,7 @@ class _DetailedAnalysisScreenState extends State<DetailedAnalysisScreen> {
   String? _loadedAnalysisResult;
   Map<String, int>? _loadedScores;
   String? _errorMessage;
+  List<Map<String, dynamic>> _historyEntries = []; // Add this line
   
   @override
   void initState() {
@@ -34,6 +38,31 @@ class _DetailedAnalysisScreenState extends State<DetailedAnalysisScreen> {
     // If we don't have scores passed directly, try to load from Firestore
     if (widget.scores == null) {
       _loadDataFromFirestore();
+    }
+    
+    // Load history data for logged-in users
+    _loadHistoryData();
+  }
+
+  // Add this method to load history data
+  Future<void> _loadHistoryData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return; // Not logged in, no need to load history
+    }
+    
+    try {
+      final firestoreService = FirestoreService();
+      final analysisHistory = await firestoreService.getAnalysisHistory(
+        user.uid,
+        limit: 5, // Show the latest 5 entries
+      );
+      
+      setState(() {
+        _historyEntries = analysisHistory;
+      });
+    } catch (e) {
+      print('Error loading analysis history: $e');
     }
   }
 
@@ -88,6 +117,9 @@ class _DetailedAnalysisScreenState extends State<DetailedAnalysisScreen> {
   
   @override
   Widget build(BuildContext context) {
+    // Check if user is logged in
+    final isLoggedIn = FirebaseAuth.instance.currentUser != null;
+    
     return Scaffold(
       body: _isLoading 
           ? const Center(child: CircularProgressIndicator())
@@ -119,23 +151,74 @@ class _DetailedAnalysisScreenState extends State<DetailedAnalysisScreen> {
                         children: [
                           const SizedBox(height: 16),
                 
-                          // Enhanced radar chart
-                          Center(
-                            child: SizedBox(
-                              width: 300,
-                              height: 300,
-                              child: CustomRadarChart(
-                                values: [
-                                  scores['pores'] ?? 0,
-                                  scores['pimples'] ?? 0,
-                                  scores['redness'] ?? 0,
-                                  scores['firmness'] ?? 0,
-                                  scores['sagging'] ?? 0,
-                                  scores['skin grade'] ?? 0,
-                                ],
+                          // Display either history chart or radar chart based on login status
+                          if (isLoggedIn && _historyEntries.isNotEmpty) 
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  '診断履歴',
+                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 16),
+                                // Full-width history chart
+                                Container(
+                                  width: double.infinity, // Takes full available width
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.grey.shade300),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: DataTable(
+                                    columnSpacing: 20,
+                                    headingRowColor: MaterialStateProperty.all(Colors.grey.shade100),
+                                    columns: const [
+                                      DataColumn(label: Text('日付')),
+                                      DataColumn(label: Text('肌年齢'), numeric: true),
+                                    ],
+                                    rows: _historyEntries.map((entry) {
+                                      // Convert timestamp
+                                      DateTime dateTime;
+                                      final timestamp = entry['timestamp'];
+                                      if (timestamp is Timestamp) {
+                                        dateTime = timestamp.toDate();
+                                      } else if (timestamp is DateTime) {
+                                        dateTime = timestamp;
+                                      } else {
+                                        dateTime = DateTime.now(); // Fallback
+                                      }
+                                      
+                                      final formattedDate = intl.DateFormat('MM/dd').format(dateTime);
+                                      final scores = entry['scores'] as Map<String, dynamic>? ?? {};
+                                      
+                                      return DataRow(
+                                        cells: [
+                                          DataCell(Text(formattedDate)),
+                                          DataCell(Text('${scores['skin age'] ?? '-'}歳')),
+                                        ],
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              ],
+                            )
+                          // For first-time users or non-logged in users, show radar chart
+                          else
+                            Center(
+                              child: SizedBox(
+                                width: 300,
+                                height: 300,
+                                child: CustomRadarChart(
+                                  values: [
+                                    scores['pores'] ?? 0,
+                                    scores['pimples'] ?? 0,
+                                    scores['redness'] ?? 0,
+                                    scores['firmness'] ?? 0,
+                                    scores['sagging'] ?? 0,
+                                    scores['skin grade'] ?? 0,
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
 
                           const SizedBox(height: 24),
 

@@ -258,37 +258,37 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
               SizedBox(height: 24),
 
               // Add history chart here
-              _isLoading 
-                ? Center(child: CircularProgressIndicator())
-                : _historyEntries.isEmpty
-                  ? Center(
-                      child: Text('診断履歴がありません', style: TextStyle(fontSize: 14)),
-                    )
-                  : Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text('診断履歴',
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 16)),
-                            GestureDetector(
-                              onTap: () {
-                                // Navigate to full history
-                              },
-                              child: Text('もっと見る',
-                                  style: TextStyle(color: Colors.blue)),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 12),
-                        SimpleSkinHistoryChart(
-                          historyEntries: _historyEntries,
-                          onEntryTap: _viewAnalysisDetails,
-                        ),
-                      ],
-                    ),
+              // _isLoading 
+              //   ? Center(child: CircularProgressIndicator())
+              //   : _historyEntries.isEmpty
+              //     ? Center(
+              //         child: Text('診断履歴がありません', style: TextStyle(fontSize: 14)),
+              //       )
+              //     : Column(
+              //         crossAxisAlignment: CrossAxisAlignment.start,
+              //         children: [
+              //           Row(
+              //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //             children: [
+              //               Text('診断履歴',
+              //                   style: TextStyle(
+              //                       fontWeight: FontWeight.bold, fontSize: 16)),
+              //               GestureDetector(
+              //                 onTap: () {
+              //                   // Navigate to full history
+              //                 },
+              //                 child: Text('もっと見る',
+              //                     style: TextStyle(color: Colors.blue)),
+              //               ),
+              //             ],
+              //           ),
+              //           SizedBox(height: 12),
+              //           SimpleSkinHistoryChart(
+              //             historyEntries: _historyEntries,
+              //             onEntryTap: _viewAnalysisDetails,
+              //           ),
+              //         ],
+              //       ),
               
               SizedBox(height: 24),
 
