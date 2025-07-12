@@ -7,6 +7,7 @@ import 'package:reme/src/features/diagnosis/widgets/historyChart.dart'; // Add t
 import 'package:reme/src/features/shared/radiusChart.dart';
 import 'package:reme/src/features/shared/services/firestore_service.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:reme/src/widgets/timelineChart.dart';
 
 class DetailedAnalysisScreen extends StatefulWidget {
   final File? faceImage;
@@ -394,6 +395,23 @@ class _DetailedAnalysisScreenState extends State<DetailedAnalysisScreen> {
                             ],
                           ),
 
+                          // Add timeline chart at the bottom, only when history chart is shown
+                          if (isLoggedIn && _historyEntries.isNotEmpty)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 32),
+                                const Text(
+                                  'スコア推移',
+                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                  height: 350, // Increased height for better visibility
+                                  child: ScoreChartScreen(),
+                                ),
+                              ],
+                            ),
         
                           const SizedBox(height: 32),
                 
