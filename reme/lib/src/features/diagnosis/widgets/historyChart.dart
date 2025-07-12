@@ -23,6 +23,7 @@ class _SkinHistoryChartState extends State<SkinHistoryChart> {
   bool _isLoading = true;
   List<Map<String, dynamic>> _historyEntries = [];
   String? _errorMessage;
+  bool _isExpanded = false; // Add this to track expanded state
 
   @override
   void initState() {
@@ -47,9 +48,10 @@ class _SkinHistoryChartState extends State<SkinHistoryChart> {
 
     try {
       final firestoreService = FirestoreService();
+      // Get more entries than we display initially, so we can show them when expanded
       final analysisHistory = await firestoreService.getAnalysisHistory(
         user.uid,
-        limit: widget.maxEntries,
+        limit: widget.maxEntries * 3, // Get more entries for expansion
       );
 
       setState(() {
@@ -111,6 +113,14 @@ class _SkinHistoryChartState extends State<SkinHistoryChart> {
       );
     }
 
+    // Determine if we have more entries than the default display limit
+    final hasMoreEntries = _historyEntries.length > widget.maxEntries;
+    
+    // Get the entries to display based on expanded state
+    final displayEntries = _isExpanded 
+        ? _historyEntries 
+        : _historyEntries.take(widget.maxEntries).toList();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -137,82 +147,127 @@ class _SkinHistoryChartState extends State<SkinHistoryChart> {
             border: Border.all(color: Colors.grey.shade300),
             borderRadius: BorderRadius.circular(8),
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                columnSpacing: 20,
-                headingRowColor: MaterialStateProperty.all(Colors.grey.shade100),
-                columns: const [
-                  DataColumn(
-                    label: Text('日付', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                  DataColumn(
-                    label: Text('肌スコア', style: TextStyle(fontWeight: FontWeight.bold)),
-                    numeric: true,
-                  ),
-                  DataColumn(
-                    label: Text('毛穴', style: TextStyle(fontWeight: FontWeight.bold)),
-                    numeric: true,
-                  ),
-                  DataColumn(
-                    label: Text('炎症', style: TextStyle(fontWeight: FontWeight.bold)),
-                    numeric: true,
-                  ),
-                  DataColumn(
-                    label: Text('赤み', style: TextStyle(fontWeight: FontWeight.bold)),
-                    numeric: true,
-                  ),
-                  DataColumn(
-                    label: Text('ハリ', style: TextStyle(fontWeight: FontWeight.bold)),
-                    numeric: true,
-                  ),
-                  DataColumn(
-                    label: Text('たるみ', style: TextStyle(fontWeight: FontWeight.bold)),
-                    numeric: true,
-                  ),
-                  DataColumn(
-                    label: Text('詳細', style: TextStyle(fontWeight: FontWeight.bold)),
-                  ),
-                ],
-                rows: _historyEntries.map((entry) {
-                  // Fixed timestamp conversion
-                  DateTime dateTime;
-                  final timestamp = entry['timestamp'];
-                  if (timestamp is Timestamp) {
-                    dateTime = timestamp.toDate();
-                  } else if (timestamp is DateTime) {
-                    dateTime = timestamp;
-                  } else {
-                    dateTime = DateTime.now(); // Fallback
-                  }
-                  
-                  final formattedDate = intl.DateFormat('yyyy/MM/dd').format(dateTime);
-                  final scores = entry['scores'] as Map<String, dynamic>? ?? {};
-                  
-                  return DataRow(
-                    cells: [
-                      DataCell(Text(formattedDate)),
-                      DataCell(Text('${scores['skin grade'] ?? '-'}')),
-                      DataCell(Text('${scores['pores'] ?? '-'}')),
-                      DataCell(Text('${scores['pimples'] ?? '-'}')),
-                      DataCell(Text('${scores['redness'] ?? '-'}')),
-                      DataCell(Text('${scores['firmness'] ?? '-'}')),
-                      DataCell(Text('${scores['sagging'] ?? '-'}')),
-                      DataCell(
-                        IconButton(
-                          icon: const Icon(Icons.visibility, color: Colors.blue),
-                          onPressed: () => _viewAnalysisDetails(entry),
-                          tooltip: '詳細を見る',
-                        ),
+          child: Column(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: DataTable(
+                    columnSpacing: 20,
+                    headingRowColor: MaterialStateProperty.all(Colors.grey.shade100),
+                    columns: const [
+                      DataColumn(
+                        label: Text('日付', style: TextStyle(fontWeight: FontWeight.bold)),
+                      ),
+                      DataColumn(
+                        label: Text('肌スコア', style: TextStyle(fontWeight: FontWeight.bold)),
+                        numeric: true,
+                      ),
+                      DataColumn(
+                        label: Text('毛穴', style: TextStyle(fontWeight: FontWeight.bold)),
+                        numeric: true,
+                      ),
+                      DataColumn(
+                        label: Text('炎症', style: TextStyle(fontWeight: FontWeight.bold)),
+                        numeric: true,
+                      ),
+                      DataColumn(
+                        label: Text('赤み', style: TextStyle(fontWeight: FontWeight.bold)),
+                        numeric: true,
+                      ),
+                      DataColumn(
+                        label: Text('ハリ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        numeric: true,
+                      ),
+                      DataColumn(
+                        label: Text('たるみ', style: TextStyle(fontWeight: FontWeight.bold)),
+                        numeric: true,
+                      ),
+                      DataColumn(
+                        label: Text('詳細', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ],
-                    onSelectChanged: (_) => _viewAnalysisDetails(entry),
-                  );
-                }).toList(),
+                    rows: displayEntries.map((entry) {
+                      // Fixed timestamp conversion
+                      DateTime dateTime;
+                      final timestamp = entry['timestamp'];
+                      if (timestamp is Timestamp) {
+                        dateTime = timestamp.toDate();
+                      } else if (timestamp is DateTime) {
+                        dateTime = timestamp;
+                      } else {
+                        dateTime = DateTime.now(); // Fallback
+                      }
+                      
+                      final formattedDate = intl.DateFormat('yyyy/MM/dd').format(dateTime);
+                      final scores = entry['scores'] as Map<String, dynamic>? ?? {};
+                      
+                      return DataRow(
+                        cells: [
+                          DataCell(Text(formattedDate)),
+                          DataCell(Text('${scores['skin grade'] ?? '-'}')),
+                          DataCell(Text('${scores['pores'] ?? '-'}')),
+                          DataCell(Text('${scores['pimples'] ?? '-'}')),
+                          DataCell(Text('${scores['redness'] ?? '-'}')),
+                          DataCell(Text('${scores['firmness'] ?? '-'}')),
+                          DataCell(Text('${scores['sagging'] ?? '-'}')),
+                          DataCell(
+                            IconButton(
+                              icon: const Icon(Icons.visibility, color: Colors.blue),
+                              onPressed: () => _viewAnalysisDetails(entry),
+                              tooltip: '詳細を見る',
+                            ),
+                          ),
+                        ],
+                        onSelectChanged: (_) => _viewAnalysisDetails(entry),
+                      );
+                    }).toList(),
+                  ),
+                ),
               ),
-            ),
+              
+              // Show expand/collapse button if we have more entries
+              if (hasMoreEntries)
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      _isExpanded = !_isExpanded;
+                    });
+                  },
+                  child: Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      border: Border(
+                        top: BorderSide(color: Colors.grey.shade300),
+                      ),
+                    ),
+                    child: Center(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            _isExpanded ? '折りたたむ' : 'すべて表示',
+                            style: TextStyle(
+                              color: Colors.blue.shade700,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          Icon(
+                            _isExpanded 
+                                ? Icons.keyboard_arrow_up 
+                                : Icons.keyboard_arrow_down,
+                            color: Colors.blue.shade700,
+                            size: 20,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
       ],
