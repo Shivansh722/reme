@@ -27,13 +27,22 @@ class _SkinAgeHistoryChartState extends State<SkinAgeHistoryChart> {
       return const SizedBox(); // Return empty widget if no data
     }
 
+    // Sort entries by date (newest first)
+    final sortedEntries = List<Map<String, dynamic>>.from(widget.historyEntries);
+    sortedEntries.sort((a, b) {
+      final aTimestamp = a['timestamp'] as Timestamp?;
+      final bTimestamp = b['timestamp'] as Timestamp?;
+      if (aTimestamp == null || bTimestamp == null) return 0;
+      return bTimestamp.compareTo(aTimestamp); // Newest first
+    });
+
     // Determine if we have more entries than the default display limit
-    final hasMoreEntries = widget.historyEntries.length > widget.maxEntries;
+    final hasMoreEntries = sortedEntries.length > widget.maxEntries;
     
     // Get the entries to display based on expanded state
     final displayEntries = _isExpanded 
-        ? widget.historyEntries 
-        : widget.historyEntries.take(widget.maxEntries).toList();
+        ? sortedEntries 
+        : sortedEntries.take(widget.maxEntries).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -61,6 +70,8 @@ class _SkinAgeHistoryChartState extends State<SkinAgeHistoryChart> {
               DataTable(
                 columnSpacing: 20,
                 headingRowColor: MaterialStateProperty.all(Colors.grey.shade100),
+                dataRowMinHeight: 48,
+                dataRowMaxHeight: 48,
                 columns: const [
                   DataColumn(label: Text('日付')),
                   DataColumn(label: Text('肌年齢'), numeric: true),
@@ -105,18 +116,23 @@ class _SkinAgeHistoryChartState extends State<SkinAgeHistoryChart> {
                       border: Border(
                         top: BorderSide(color: Colors.grey.shade300),
                       ),
+                      borderRadius: const BorderRadius.only(
+                        bottomLeft: Radius.circular(8),
+                        bottomRight: Radius.circular(8),
+                      ),
                     ),
                     child: Center(
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            _isExpanded ? '折りたたむ' : 'すべて表示',
+                            _isExpanded ? '折りたたむ' : 'すべて表示 (${sortedEntries.length - widget.maxEntries}件)',
                             style: TextStyle(
                               color: Colors.blue.shade700,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
+                          const SizedBox(width: 4),
                           Icon(
                             _isExpanded 
                                 ? Icons.keyboard_arrow_up 

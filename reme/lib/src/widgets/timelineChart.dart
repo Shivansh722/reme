@@ -296,105 +296,109 @@ class _ScoreChartScreenState extends State<ScoreChartScreen> {
                       ),
                     )
                   else
-                    SizedBox(
-                      height: 250,
-                      child: LineChart(
-                        LineChartData(
-                          gridData: FlGridData(
-                            show: true,
-                            drawHorizontalLine: true,
-                            drawVerticalLine: true,
-                            horizontalInterval: 25,
-                            getDrawingHorizontalLine: (value) {
-                              return FlLine(
-                                color: Colors.grey.shade200,
-                                strokeWidth: 1,
-                              );
-                            },
-                            getDrawingVerticalLine: (value) {
-                              return FlLine(
-                                color: Colors.grey.shade200,
-                                strokeWidth: 1,
-                              );
-                            },
-                          ),
-                          borderData: FlBorderData(show: false),
-                          titlesData: FlTitlesData(
-                            bottomTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                interval: 1,
-                                getTitlesWidget: (value, _) {
-                                  int i = value.toInt();
-                                  if (i < xAxisLabels.length) {
-                                    return Text(xAxisLabels[i],
-                                        style: const TextStyle(fontSize: 12));
-                                  }
-                                  return const SizedBox.shrink();
-                                },
-                              ),
-                            ),
-                            leftTitles: AxisTitles(
-                              sideTitles: SideTitles(
-                                showTitles: true,
-                                reservedSize: 28,
-                                interval: 25,
-                                getTitlesWidget: (value, _) =>
-                                    Text(value.toInt().toString()),
-                              ),
-                            ),
-                            rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                            topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                          ),
-                          minY: 0,
-                          maxY: 100,
-                          lineBarsData: selectedParameters
-                              .where((param) => dataByParameter.containsKey(param))
-                              .map((parameter) {
-                                final spots = dataByParameter[parameter] ?? [];
-                                final color = _getColorForParameter(parameter);
-                                return LineChartBarData(
-                                  isCurved: true,
-                                  color: color,
-                                  barWidth: 3,
-                                  dotData: FlDotData(show: true),
-                                  belowBarData: BarAreaData(show: false),
-                                  spots: spots,
-                                );
-                              }).toList(),
-                        ),
-                      ),
-                    ),
-
-                  // Legend for selected parameters
-                  if (_analysisData.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(top: 16),
-                      child: Wrap(
-                        spacing: 16,
-                        runSpacing: 8,
-                        children: selectedParameters
-                            .where((param) => dataByParameter.containsKey(param))
-                            .map((param) {
-                              return Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 12,
-                                    height: 12,
-                                    decoration: BoxDecoration(
-                                      color: _getColorForParameter(param),
-                                      shape: BoxShape.circle,
+                    Expanded(
+                      child: Column(
+                        children: [
+                          Expanded(
+                            child: LineChart(
+                              LineChartData(
+                                gridData: FlGridData(
+                                  show: true,
+                                  drawHorizontalLine: true,
+                                  drawVerticalLine: true,
+                                  horizontalInterval: 25,
+                                  getDrawingHorizontalLine: (value) {
+                                    return FlLine(
+                                      color: Colors.grey.shade200,
+                                      strokeWidth: 1,
+                                    );
+                                  },
+                                  getDrawingVerticalLine: (value) {
+                                    return FlLine(
+                                      color: Colors.grey.shade200,
+                                      strokeWidth: 1,
+                                    );
+                                  },
+                                ),
+                                borderData: FlBorderData(show: false),
+                                titlesData: FlTitlesData(
+                                  bottomTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                      showTitles: true,
+                                      interval: 1,
+                                      getTitlesWidget: (value, _) {
+                                        int i = value.toInt();
+                                        if (i < xAxisLabels.length) {
+                                          return Text(xAxisLabels[i],
+                                              style: const TextStyle(fontSize: 12));
+                                        }
+                                        return const SizedBox.shrink();
+                                      },
                                     ),
                                   ),
-                                  const SizedBox(width: 4),
-                                  Text(
-                                    parameterMapping[param] ?? param,
-                                    style: const TextStyle(fontSize: 12),
+                                  leftTitles: AxisTitles(
+                                    sideTitles: SideTitles(
+                                      showTitles: true,
+                                      reservedSize: 28,
+                                      interval: 25,
+                                      getTitlesWidget: (value, _) =>
+                                          Text(value.toInt().toString()),
+                                    ),
                                   ),
-                                ],
-                              );
-                            }).toList(),
+                                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                                ),
+                                minY: 0,
+                                maxY: 100,
+                                lineBarsData: selectedParameters
+                                    .where((param) => dataByParameter.containsKey(param))
+                                    .map((parameter) {
+                                      final spots = dataByParameter[parameter] ?? [];
+                                      final color = _getColorForParameter(parameter);
+                                      return LineChartBarData(
+                                        isCurved: true,
+                                        color: color,
+                                        barWidth: 3,
+                                        dotData: FlDotData(show: true),
+                                        belowBarData: BarAreaData(show: false),
+                                        spots: spots,
+                                      );
+                                    }).toList(),
+                              ),
+                            ),
+                          ),
+                          
+                          // Legend for selected parameters - moved inside the Column
+                          Padding(
+                            padding: const EdgeInsets.only(top: 8, bottom: 8),
+                            child: Wrap(
+                              spacing: 16,
+                              runSpacing: 8,
+                              children: selectedParameters
+                                  .where((param) => dataByParameter.containsKey(param))
+                                  .map((param) {
+                                    return Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Container(
+                                          width: 12,
+                                          height: 12,
+                                          decoration: BoxDecoration(
+                                            color: _getColorForParameter(param),
+                                            shape: BoxShape.circle,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          parameterMapping[param] ?? param,
+                                          style: const TextStyle(fontSize: 12),
+                                        ),
+                                      ],
+                                    );
+                                  }).toList(),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                 ],
