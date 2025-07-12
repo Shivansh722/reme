@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:reme/src/features/diagnosis/widgets/circularProg.dart';
-import 'package:reme/src/features/diagnosis/widgets/historyChart.dart'; // Add this import
+import 'package:reme/src/features/diagnosis/widgets/historyChart.dart';
+import 'package:reme/src/features/diagnosis/widgets/skinAgeHistoryChart.dart'; // Add this import
 import 'package:reme/src/features/shared/radiusChart.dart';
 import 'package:reme/src/features/shared/services/firestore_service.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:reme/src/widgets/timelineChart.dart';
 
 class DetailedAnalysisScreen extends StatefulWidget {
   final File? faceImage;
@@ -153,53 +155,10 @@ class _DetailedAnalysisScreenState extends State<DetailedAnalysisScreen> {
                 
                           // Display either history chart or radar chart based on login status
                           if (isLoggedIn && _historyEntries.isNotEmpty) 
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  '診断履歴',
-                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 16),
-                                // Full-width history chart
-                                Container(
-                                  width: double.infinity, // Takes full available width
-                                  decoration: BoxDecoration(
-                                    border: Border.all(color: Colors.grey.shade300),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: DataTable(
-                                    columnSpacing: 20,
-                                    headingRowColor: MaterialStateProperty.all(Colors.grey.shade100),
-                                    columns: const [
-                                      DataColumn(label: Text('日付')),
-                                      DataColumn(label: Text('肌年齢'), numeric: true),
-                                    ],
-                                    rows: _historyEntries.map((entry) {
-                                      // Convert timestamp
-                                      DateTime dateTime;
-                                      final timestamp = entry['timestamp'];
-                                      if (timestamp is Timestamp) {
-                                        dateTime = timestamp.toDate();
-                                      } else if (timestamp is DateTime) {
-                                        dateTime = timestamp;
-                                      } else {
-                                        dateTime = DateTime.now(); // Fallback
-                                      }
-                                      
-                                      final formattedDate = intl.DateFormat('MM/dd').format(dateTime);
-                                      final scores = entry['scores'] as Map<String, dynamic>? ?? {};
-                                      
-                                      return DataRow(
-                                        cells: [
-                                          DataCell(Text(formattedDate)),
-                                          DataCell(Text('${scores['skin age'] ?? '-'}歳')),
-                                        ],
-                                      );
-                                    }).toList(),
-                                  ),
-                                ),
-                              ],
+                            SkinAgeHistoryChart(
+                              historyEntries: _historyEntries,
+                              showTitle: true,
+                              maxEntries: 5,
                             )
                           // For first-time users or non-logged in users, show radar chart
                           else
@@ -394,6 +353,23 @@ class _DetailedAnalysisScreenState extends State<DetailedAnalysisScreen> {
                             ],
                           ),
 
+                          // Add timeline chart at the bottom, only when history chart is shown
+                          if (isLoggedIn && _historyEntries.isNotEmpty)
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const SizedBox(height: 32),
+                                const Text(
+                                  'スコア推移',
+                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 16),
+                                SizedBox(
+                                  height: 350, // Increased height for better visibility
+                                  child: ScoreChartScreen(),
+                                ),
+                              ],
+                            ),
         
                           const SizedBox(height: 32),
                 
