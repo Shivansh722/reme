@@ -58,7 +58,7 @@ class SignUpScreen extends StatelessWidget {
         print("Navigation error: $e");
         // Show fallback error to user
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error navigating to home screen")),
+          SnackBar(content: Text("ホーム画面への移動中にエラーが発生しました")),
         );
       }
     } on FirebaseAuthException catch (e) {
@@ -67,7 +67,7 @@ class SignUpScreen extends StatelessWidget {
       
       // Show error message
       if (context.mounted) {
-        _authService.showErrorDialog(context, e.message ?? 'Login failed');
+        _authService.showErrorDialog(context, e.message ?? 'ログインに失敗しました');
       }
     }
   }
@@ -107,7 +107,7 @@ class SignUpScreen extends StatelessWidget {
       
       // Show error message with more details
       if (context.mounted) {
-        _authService.showErrorDialog(context, 'Google login failed: ${e.toString()}');
+        _authService.showErrorDialog(context, 'Googleログインに失敗しました: ${e.toString()}');
       }
       print("Google login error details: $e");
     }
@@ -137,7 +137,7 @@ class SignUpScreen extends StatelessWidget {
       
       // Show error message
       if (context.mounted) {
-        _authService.showErrorDialog(context, 'LINE login failed: ${e.toString()}');
+        _authService.showErrorDialog(context, 'LINEログインに失敗しました: ${e.toString()}');
       }
     }
   }
@@ -150,7 +150,7 @@ class SignUpScreen extends StatelessWidget {
         SizedBox(height: 8),
         TextField(
           controller: controller,
-          obscureText: label == 'Password' || label == 'Confirm Password', // Enable obscureText for password fields
+          obscureText: label == 'パスワード' || label == 'パスワード確認', // Enable obscureText for password fields
           decoration: InputDecoration(
             hintText: hint,
             filled: true,
@@ -207,31 +207,31 @@ class SignUpScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Sign Up', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            Text('アカウント登録', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
             SizedBox(height: 24),
       
             // Sign up fields
-            buildTextField('Email', 'Enter your email address', emailController),
-            buildTextField('Password', 'Enter your password', passwordController),
-            buildTextField('Confirm Password', 'Confirm your password', confirmPasswordController),
+            buildTextField('メールアドレス', 'メールアドレスを入力してください', emailController),
+            buildTextField('パスワード', 'パスワードを入力してください', passwordController),
+            buildTextField('パスワード確認', 'パスワードを再入力してください', confirmPasswordController),
       
             // Terms and privacy policy
             Text.rich(
               TextSpan(
-                text: 'Terms of Service',
+                text: '利用規約',
                 style: TextStyle(color: Colors.blue, fontSize: 12),
                 children: [
-                  TextSpan(text: ' and '),
-                  TextSpan(text: 'Privacy Policy', style: TextStyle(color: Colors.blue)),
-                  TextSpan(text: '. Please proceed to register or login after agreement.'),
+                  TextSpan(text: ' および '),
+                  TextSpan(text: 'プライバシーポリシー', style: TextStyle(color: Colors.blue)),
+                  TextSpan(text: 'に同意の上、登録またはログインしてください。'),
                 ],
               ),
             ),
             SizedBox(height: 16),
-            buildButton('Register New Account', () {
+            buildButton('新規アカウント登録', () {
               // Check if passwords match
               if (passwordController.text != confirmPasswordController.text) {
-                _authService.showErrorDialog(context, 'Passwords do not match');
+                _authService.showErrorDialog(context, 'パスワードが一致しません');
                 return;
               }
               
@@ -275,15 +275,15 @@ class SignUpScreen extends StatelessWidget {
                 
                 // Show error message
                 if (context.mounted && e is FirebaseAuthException) {
-                  _authService.showErrorDialog(context, e.message ?? 'Registration failed');
+                  _authService.showErrorDialog(context, e.message ?? '登録に失敗しました');
                 } else if (context.mounted) {
-                  _authService.showErrorDialog(context, 'Registration failed: ${e.toString()}');
+                  _authService.showErrorDialog(context, '登録に失敗しました: ${e.toString()}');
                 }
               });
             }),
       
             SizedBox(height: 32),
-            Center(child: Text('Already have an account?', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
+            Center(child: Text('すでにアカウントをお持ちの方', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
             SizedBox(height: 16),
       
             ElevatedButton(
@@ -298,7 +298,7 @@ class SignUpScreen extends StatelessWidget {
                 children: [
                   Image.asset('lib/assets/images/google_logo.png', height: 24, width: 24),
                   SizedBox(width: 12),
-                  Text('Login with Google', style: TextStyle(color: Colors.black, fontSize: 16)),
+                  Text('Googleでログイン', style: TextStyle(color: Colors.black, fontSize: 16)),
                 ],
               ),
             ),
@@ -315,15 +315,15 @@ class SignUpScreen extends StatelessWidget {
               children: [
                 Image.asset('lib/assets/images/line_logo_white.png', height: 24, width: 24),
                 SizedBox(width: 12),
-                Text('Login with LINE', style: TextStyle(color: Colors.white, fontSize: 16)),
+                Text('LINEでログイン', style: TextStyle(color: Colors.white, fontSize: 16)),
               ],
               ),
             ),
             SizedBox(height: 32),
       
             // Login fields - now using separate controllers
-            buildTextField('Email', 'Enter your email address', loginEmailController),
-            buildTextField('Password', 'Enter your password', loginPasswordController),
+            buildTextField('メールアドレス', 'メールアドレスを入力してください', loginEmailController),
+            buildTextField('パスワード', 'パスワードを入力してください', loginPasswordController),
       
             SizedBox(
               width: double.infinity,
@@ -331,7 +331,7 @@ class SignUpScreen extends StatelessWidget {
               child: OutlinedButton.icon(
                 onPressed: () => loginUser(context),
                 icon: Icon(Icons.mail_outline, color: Colors.pinkAccent),
-                label: Text('Login', style: TextStyle(color: Colors.pinkAccent)),
+                label: Text('ログイン', style: TextStyle(color: Colors.pinkAccent)),
                 style: OutlinedButton.styleFrom(
                   side: BorderSide(color: Colors.pinkAccent),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
