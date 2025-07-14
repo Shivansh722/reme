@@ -3,36 +3,36 @@ import 'package:reme/src/features/auth/Views/loginView.dart';
 import 'package:reme/src/features/auth/Views/registerView.dart';
 
 class LoginOrRegister extends StatefulWidget {
-  const LoginOrRegister({super.key});
+  final Map<String, dynamic>? pendingAnalysisData;
+  
+  const LoginOrRegister({super.key, this.pendingAnalysisData});
 
   @override
   State<LoginOrRegister> createState() => _LoginOrRegisterState();
 }
 
 class _LoginOrRegisterState extends State<LoginOrRegister> {
+  // initially, show the login page
+  bool showLoginPage = true;
 
-  //initially show login view
-   bool showLoginView = true;
-
-
-  // toggle between login and register view
-  void toggleView() {
+  // toggle between login and register page
+  void togglePages() {
     setState(() {
-      showLoginView = !showLoginView;
+      showLoginPage = !showLoginPage;
     });
   }
 
-
-
   @override
   Widget build(BuildContext context) {
-    if(showLoginView) {
+    if (showLoginPage) {
       return Loginview(
-        onTap: toggleView,
+        onTap: togglePages,
+        pendingAnalysisData: widget.pendingAnalysisData,
       );
     } else {
       return Registerview(
-        onTap: toggleView,
+        onTap: togglePages,
+        pendingAnalysisData: widget.pendingAnalysisData,
       );
     }
   }

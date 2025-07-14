@@ -4,17 +4,18 @@ import 'package:flutter/services.dart';
 import 'package:flutter_line_sdk/flutter_line_sdk.dart';
 import 'package:reme/src/features/auth/services/authService.dart';
 import 'package:reme/src/features/diagnosis/views/diagnosisView.dart';
+import 'package:reme/src/features/home/views/homeView.dart';
 import 'package:reme/src/helpers/helper_functions.dart';
 import 'package:reme/src/widgets/customButton.dart';
 import 'package:reme/src/widgets/customTextField.dart';
 import 'package:reme/src/widgets/squareTile.dart';
 
 class Loginview extends StatefulWidget {
-
   // Callback function to handle tap events
   final void Function() onTap;
+  final Map<String, dynamic>? pendingAnalysisData;
 
-  const Loginview({super.key, required this.onTap});
+  const Loginview({super.key, required this.onTap, this.pendingAnalysisData});
 
   @override
   State<Loginview> createState() => _LoginviewState();
@@ -28,11 +29,8 @@ class _LoginviewState extends State<Loginview> {
   // Create an instance of the auth service
   final Authservice _authService = Authservice();
 
-  
-
   //login method
   void login() async {
-    
     //show loading indicator
     showDialog(
       context: context,
@@ -43,7 +41,6 @@ class _LoginviewState extends State<Loginview> {
       }
     );
 
-    //try logging in the user
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailController.text,
@@ -51,13 +48,24 @@ class _LoginviewState extends State<Loginview> {
       );
 
       //pop loading circle
-      Navigator.pop(context); 
-  }
-  //display if any errors
-  on FirebaseAuthException catch (e) { 
-      //hide loading indicator
-      Navigator.pop(context);
+      if (context.mounted) Navigator.pop(context);
 
+      // Always go to HomeviewMain with detailed analysis tab
+      if (context.mounted) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => HomeviewMain(
+              initialTab: 3,
+              faceImage: widget.pendingAnalysisData?['faceImage'],
+              analysisResult: widget.pendingAnalysisData?['analysisResult'],
+              scores: widget.pendingAnalysisData?['scores'],
+            ),
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) { 
+      if (context.mounted) Navigator.pop(context);
       //show error message using our helper function
       showErrorMessage(context, e.code);
     }
@@ -103,6 +111,9 @@ class _LoginviewState extends State<Loginview> {
           ),
         );
       }
+      
+      // If there's pending analysis data, the AuthGate will handle navigation
+      // Otherwise, normal flow continues
       
     } on PlatformException catch (e) {
       print("LINE SDK login error: ${e.toString()}");
@@ -168,6 +179,34 @@ class _LoginviewState extends State<Loginview> {
 
                   const SizedBox(height: 20),
 
+                  // Show message if there's pending analysis data
+                  if (widget.pendingAnalysisData != null) ...[
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.blue[50],
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.blue[200]!),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.info, color: Colors.blue[700]),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'Sign in to view your detailed skin analysis results',
+                              style: TextStyle(
+                                color: Colors.blue[700],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
                   // //email
                   Customtextfield(
                     hintText: 'Email',
@@ -205,7 +244,9 @@ class _LoginviewState extends State<Loginview> {
               
                   const SizedBox(height: 10),
 
-                  Custombutton(text: 'Start Diagnosis', onTap: startDiagnosis),
+                  // Only show "Start Diagnosis" button if there's no pending analysis data
+                  if (widget.pendingAnalysisData == null)
+                    Custombutton(text: 'Start Diagnosis', onTap: startDiagnosis),
                   
                   const SizedBox(height: 24),
 

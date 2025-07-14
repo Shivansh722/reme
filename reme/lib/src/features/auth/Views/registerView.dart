@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:reme/src/features/home/views/homeView.dart';
 import 'package:reme/src/helpers/helper_functions.dart';
 import 'package:reme/src/widgets/customButton.dart';
 import 'package:reme/src/widgets/customTextField.dart';
 import 'package:firebase_auth/firebase_auth.dart'; // Import Firebase Auth
 
-class Registerview extends StatefulWidget {
 
+class Registerview extends StatefulWidget {
   // Callback function to handle tap events
   final void Function()? onTap;
+  final Map<String, dynamic>? pendingAnalysisData;
 
-  const Registerview({super.key, required this.onTap});
+  const Registerview({super.key, required this.onTap, this.pendingAnalysisData});
 
   @override
   State<Registerview> createState() => _RegisterviewState();
@@ -26,46 +28,46 @@ class _RegisterviewState extends State<Registerview> {
   TextEditingController userNameController = TextEditingController();
 
   //registerMethod
-  void registerUser() async { // Added async here
-
-    //show loading indicator
+  void registerUser() async {
     showDialog(
       context: context,
       builder: (context) {
-      return const Center(
-        child: CircularProgressIndicator(),
-      );
-    });
+        return const Center(
+          child: CircularProgressIndicator(),
+        );
+      }
+    );
 
-    //if pasword don't match, show error message
     if(passwordController.text != confirmPasswordController.text) {
-
-      //hide loading indicator
       Navigator.pop(context);
-
-      //show error message using our helper function
       showErrorMessage(context, 'Passwords do not match');
       return;
-    } 
-
-    //try creating the user
-    else {
-      try  {
-        //create user
+    } else {
+      try {
         UserCredential? userCredential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: emailController.text,
           password: passwordController.text,
         );
       
-          //pop loading circle
-        if (context.mounted) Navigator.pop(context); // Added context.mounted check
-      } on FirebaseAuthException catch (e) { // Corrected typo
-      
-        //hide loading indicator
-        if (context.mounted) Navigator.pop(context); // Added context.mounted check
-      
-        //show error message using our helper function
-        if (context.mounted) showErrorMessage(context, e.message.toString()); // Added context.mounted check
+        if (context.mounted) Navigator.pop(context);
+
+        // Always go to HomeviewMain with detailed analysis tab
+        if (context.mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => HomeviewMain(
+                initialTab: 3,
+                faceImage: widget.pendingAnalysisData?['faceImage'],
+                analysisResult: widget.pendingAnalysisData?['analysisResult'],
+                scores: widget.pendingAnalysisData?['scores'],
+              ),
+            ),
+          );
+        }
+      } on FirebaseAuthException catch (e) {
+        if (context.mounted) Navigator.pop(context);
+        if (context.mounted) showErrorMessage(context, e.message.toString());
       }
     }
   }
