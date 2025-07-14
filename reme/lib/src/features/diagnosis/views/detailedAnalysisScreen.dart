@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:reme/src/features/diagnosis/widgets/circularProg.dart';
 import 'package:reme/src/features/diagnosis/widgets/historyChart.dart';
 import 'package:reme/src/features/diagnosis/widgets/skinAgeHistoryChart.dart'; // Add this import
+import 'package:reme/src/features/home/widgets/recommendedCard.dart';
 import 'package:reme/src/features/shared/radiusChart.dart';
 import 'package:reme/src/features/shared/services/firestore_service.dart';
 import 'package:intl/intl.dart' as intl;
@@ -374,12 +375,60 @@ class _DetailedAnalysisScreenState extends State<DetailedAnalysisScreen> {
                           const SizedBox(height: 32),
                 
                           // Personalized recommendations
-                          _buildRecommendationsSection(),
-                
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                              'おすすめ製品',
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                              children: [
+                                Expanded(
+                                child: ProductCard(
+                                  title: '母袋有機農場シリーズ...',
+                                  description: '栄養豊富なヘチマ水がすっと浸透、繊細な肌を包み込み',
+                                  price: '¥1,234(税込)',
+                                ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                child: ProductCard(
+                                  title: '母袋有機農場シリーズ...',
+                                  description: '栄養豊富なヘチマ水がすっと浸透、繊細な肌を包み込み',
+                                  price: '¥1,234(税込)',
+                                ),
+                                ),
+                              ],
+                              ),
+                              const SizedBox(height: 16),
+                              Row(
+                              children: [
+                                Expanded(
+                                child: ProductCard(
+                                  title: '保湿美容液...',
+                                  description: 'セラミド配合で乾燥肌を集中的にケア、バリア機能を強化',
+                                  price: '¥2,980(税込)',
+                                ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                child: ProductCard(
+                                  title: 'ビタミンC美容液...',
+                                  description: '高濃度ビタミンCがくすみを改善し、明るい肌へ導きます',
+                                  price: '¥3,500(税込)',
+                                ),
+                                ),
+                              ],
+                              ),
+                            ],
+                          ),
+
                           const SizedBox(height: 32),
                 
                           // Full analysis text
-                          _buildFullAnalysisSection(),
+                          // _buildFullAnalysisSection(),
                         ],
                       ),
                     ),
@@ -388,63 +437,30 @@ class _DetailedAnalysisScreenState extends State<DetailedAnalysisScreen> {
     );
   }
 
-  
-
-  Widget _buildRecommendationsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Personalized Recommendations',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        ...( _generateRecommendations().map(
-          (rec) => Container(
-            margin: const EdgeInsets.only(bottom: 12),
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.blue[200]!),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.lightbulb, color: Colors.blue[700]),
-                const SizedBox(width: 12),
-                Expanded(child: Text(rec)),
-              ],
-            ),
-          ),
-        ).toList()),
-      ],
-    );
-  }
-
-  Widget _buildFullAnalysisSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Complete Analysis',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.grey[50],
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey[200]!),
-          ),
-          child: Text(
-            analysisResult,
-            style: const TextStyle(fontSize: 16, height: 1.5),
-          ),
-        ),
-      ],
-    );
-  }
+  // Widget _buildFullAnalysisSection() {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       const Text(
+  //         'Complete Analysis',
+  //         style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+  //       ),
+  //       const SizedBox(height: 16),
+  //       Container(
+  //         padding: const EdgeInsets.all(16),
+  //         decoration: BoxDecoration(
+  //           color: Colors.grey[50],
+  //           borderRadius: BorderRadius.circular(12),
+  //           border: Border.all(color: Colors.grey[200]!),
+  //         ),
+  //         child: Text(
+  //           analysisResult,
+  //           style: const TextStyle(fontSize: 16, height: 1.5),
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
 
   Color _getScoreColor(int score) {
     if (score >= 80) return Colors.green;
