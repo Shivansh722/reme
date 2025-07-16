@@ -11,7 +11,7 @@ class SkinAgeHistoryChart extends StatefulWidget {
     super.key,
     required this.historyEntries,
     this.showTitle = true,
-    this.maxEntries = 5,
+    this.maxEntries = 3,
   });
 
   @override
@@ -47,36 +47,74 @@ class _SkinAgeHistoryChartState extends State<SkinAgeHistoryChart> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Title above the chart
         if (widget.showTitle)
-          const Column(
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8.0, left: 4.0),
+            child: Center(
+              child: Text(
+                'マイカルテ',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade800,
+                ),
+              ),
+            ),
+          ),
+        
+        // Chart card
+        Card(
+          elevation: 0,
+          color: Colors.grey.shade100,
+         
+          margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+          child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '診断履歴',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              // Header with title and expand button
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      '診断履歴：肌スコア',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    if (hasMoreEntries)
+                      GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            _isExpanded = !_isExpanded;
+                          });
+                        },
+                        child: Icon(
+                          Icons.arrow_forward_ios,
+                          size: 18,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                  ],
+                ),
               ),
-              SizedBox(height: 16),
-            ],
-          ),
-        // Full-width history chart
-        Container(
-          width: double.infinity, // Takes full available width
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Column(
-            children: [
-              DataTable(
-                columnSpacing: 20,
-                headingRowColor: MaterialStateProperty.all(Colors.grey.shade100),
-                dataRowMinHeight: 48,
-                dataRowMaxHeight: 48,
-                columns: const [
-                  DataColumn(label: Text('日付')),
-                  DataColumn(label: Text('肌年齢'), numeric: true),
-                ],
-                rows: displayEntries.map((entry) {
+              
+              // Score list directly in the light grey background
+              ListView.separated(
+                physics: const NeverScrollableScrollPhysics(),
+                shrinkWrap: true,
+                itemCount: displayEntries.length,
+                separatorBuilder: (context, index) => Divider(
+                  height: 1,
+                  color: Colors.grey.shade300,
+                ),
+                itemBuilder: (context, index) {
+                  final entry = displayEntries[index];
+                  
                   // Convert timestamp
                   DateTime dateTime;
                   final timestamp = entry['timestamp'];
@@ -88,63 +126,33 @@ class _SkinAgeHistoryChartState extends State<SkinAgeHistoryChart> {
                     dateTime = DateTime.now(); // Fallback
                   }
                   
-                  final formattedDate = intl.DateFormat('MM/dd').format(dateTime);
+                  final formattedDate = intl.DateFormat('yyyy/MM/dd').format(dateTime);
                   final scores = entry['scores'] as Map<String, dynamic>? ?? {};
                   
-                  return DataRow(
-                    cells: [
-                      DataCell(Text(formattedDate)),
-                      DataCell(Text('${scores['skin age'] ?? '-'}歳')),
-                    ],
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          formattedDate,
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey.shade600,
+                          ),
+                        ),
+                        Text(
+                          '${scores['skin grade'] ?? 0}点',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
                   );
-                }).toList(),
+                },
               ),
-              
-              // Show expand/collapse button if we have more entries
-              if (hasMoreEntries)
-                InkWell(
-                  onTap: () {
-                    setState(() {
-                      _isExpanded = !_isExpanded;
-                    });
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      border: Border(
-                        top: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      borderRadius: const BorderRadius.only(
-                        bottomLeft: Radius.circular(8),
-                        bottomRight: Radius.circular(8),
-                      ),
-                    ),
-                    child: Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _isExpanded ? '折りたたむ' : 'すべて表示 (${sortedEntries.length - widget.maxEntries}件)',
-                            style: TextStyle(
-                              color: Colors.blue.shade700,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(
-                            _isExpanded 
-                                ? Icons.keyboard_arrow_up 
-                                : Icons.keyboard_arrow_down,
-                            color: Colors.blue.shade700,
-                            size: 20,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
             ],
           ),
         ),

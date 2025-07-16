@@ -20,14 +20,14 @@ class _ScoreChartScreenState extends State<ScoreChartScreen> {
 
   // Parameter names mapping (API names to display names)
   final Map<String, String> parameterMapping = {
-    'pores': 'Pores',
-    'pimples': 'Inflammation',
-    'redness': 'Redness',
-    'firmness': 'Firmness',
-    'sagging': 'Sagging',
-    'dark spots': 'Spots',
-    'skin grade': 'Overall Score',
-    'skin age': 'Skin Age'
+    'pores': '毛穴',
+    'pimples': '炎症',
+    'redness': '赤み',
+    'firmness': '弾力',
+    'sagging': 'たるみ',
+    'dark spots': 'シミ',
+    'skin grade': '総合スコア',
+    'skin age': '肌年齢'
   };
 
   // Default selected parameters
@@ -62,10 +62,10 @@ class _ScoreChartScreenState extends State<ScoreChartScreen> {
       final firestoreService = FirestoreService();
       final analysisHistory = await firestoreService.getAnalysisHistory(
         user.uid,
-        limit: 20, // Get more data for the chart
+        limit: 20, // グラフ用により多くのデータを取得
       );
 
-      // Sort by timestamp (oldest to newest)
+      // タイムスタンプでソート（古い順に）
       analysisHistory.sort((a, b) {
         final aTimestamp = a['timestamp'] as Timestamp?;
         final bTimestamp = b['timestamp'] as Timestamp?;
@@ -79,7 +79,7 @@ class _ScoreChartScreenState extends State<ScoreChartScreen> {
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading analysis history for chart: $e');
+      print('グラフ用の診断履歴読み込みエラー: $e');
       setState(() {
         _isLoading = false;
       });
@@ -87,28 +87,28 @@ class _ScoreChartScreenState extends State<ScoreChartScreen> {
   }
 
   void _processDataForChart() {
-    // Reset data
+    // データをリセット
     dataByParameter = {};
     xAxisLabels = [];
     
-    // Filter data for selected year
+    // 選択された年のデータをフィルタリング
     final yearData = _analysisData.where((entry) {
       final timestamp = entry['timestamp'] as Timestamp?;
       if (timestamp == null) return false;
       return timestamp.toDate().year == selectedYear;
     }).toList();
 
-    // No data for selected year
+    // 選択された年のデータがない場合
     if (yearData.isEmpty) {
       return;
     }
 
-    // Extract all parameters from the first entry to discover available parameters
+    // 最初のエントリからすべてのパラメータを抽出して、利用可能なパラメータを発見
     final firstEntry = yearData.first;
     final scores = firstEntry['scores'] as Map<String, dynamic>?;
     final availableParameters = scores?.keys.toList() ?? [];
 
-    // If we have available parameters but none selected, select first two by default
+    // 利用可能なパラメータがあるが、選択されたパラメータがない場合、デフォルトで最初の2つを選択
     if (selectedParameters.isEmpty && availableParameters.length >= 2) {
       selectedParameters = [
         availableParameters[0],
@@ -116,18 +116,18 @@ class _ScoreChartScreenState extends State<ScoreChartScreen> {
       ];
     }
 
-    // Create x-axis labels and initialize data structure
+    // X軸ラベルを作成し、データ構造を初期化
     for (int i = 0; i < yearData.length; i++) {
       final entry = yearData[i];
       final timestamp = entry['timestamp'] as Timestamp?;
       
       if (timestamp != null) {
         final date = timestamp.toDate();
-        // Format as month abbreviation
-        final monthLabel = intl.DateFormat('MMM').format(date);
+        // 月の省略形でフォーマット
+        final monthLabel = intl.DateFormat('M月').format(date);
         xAxisLabels.add(monthLabel);
         
-        // Process scores for each parameter
+        // 各パラメータのスコアを処理
         final scores = entry['scores'] as Map<String, dynamic>?;
         if (scores != null) {
           scores.forEach((parameter, value) {
@@ -135,7 +135,7 @@ class _ScoreChartScreenState extends State<ScoreChartScreen> {
               dataByParameter[parameter] = [];
             }
             
-            // Convert value to double
+            // 値をdoubleに変換
             double scoreValue = 0;
             if (value is int) {
               scoreValue = value.toDouble();
@@ -145,7 +145,7 @@ class _ScoreChartScreenState extends State<ScoreChartScreen> {
               scoreValue = value.toDouble();
             }
             
-            // Add data point
+            // データポイントを追加
             dataByParameter[parameter]!.add(FlSpot(i.toDouble(), scoreValue));
           });
         }
@@ -155,7 +155,7 @@ class _ScoreChartScreenState extends State<ScoreChartScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Get all available parameters from the processed data
+    // 処理されたデータからすべての利用可能なパラメータを取得
     final allParameters = dataByParameter.keys.toList();
 
     return _isLoading
@@ -167,18 +167,18 @@ class _ScoreChartScreenState extends State<ScoreChartScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  /// Header
+                  /// ヘッダー
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      // Left column with title and year selector
+                      // 左側のタイトルと年の選択
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const Text(
-                            'Score Transition',
+                            'スコア推移',
                             style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                           ),
                           Row(
@@ -197,7 +197,7 @@ class _ScoreChartScreenState extends State<ScoreChartScreen> {
                                 visualDensity: VisualDensity.compact,
                               ),
                               Text(
-                                '$selectedYear',
+                                '$selectedYear年',
                                 style: const TextStyle(
                                   fontSize: 18, 
                                   fontWeight: FontWeight.bold
@@ -220,7 +220,7 @@ class _ScoreChartScreenState extends State<ScoreChartScreen> {
                         ],
                       ),
                       
-                      // Right side dropdown
+                      // 右側のドロップダウン
                       if (allParameters.isNotEmpty)
                         DropdownButtonHideUnderline(
                           child: DropdownButton2<String>(
@@ -232,7 +232,7 @@ class _ScoreChartScreenState extends State<ScoreChartScreen> {
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Text(
-                                'Select Parameters',
+                                'パラメータ選択',
                                 style: TextStyle(fontSize: 14),
                               ),
                             ),
@@ -251,7 +251,7 @@ class _ScoreChartScreenState extends State<ScoreChartScreen> {
                                             size: 18,
                                           ),
                                           const SizedBox(width: 8),
-                                          // Use display name if available
+                                          // 利用可能であれば表示名を使用
                                           Text(
                                             parameterMapping[param] ?? param,
                                             style: const TextStyle(fontSize: 13)
@@ -285,12 +285,12 @@ class _ScoreChartScreenState extends State<ScoreChartScreen> {
                   ),
                   const SizedBox(height: 8),
 
-                  /// Chart
+                  /// チャート
                   if (_analysisData.isEmpty)
                     const Expanded(
                       child: Center(
                         child: Text(
-                          'No analysis data available for selected year',
+                          '選択した年のデータはありません',
                           style: TextStyle(fontSize: 16, color: Colors.grey),
                         ),
                       ),
@@ -368,7 +368,7 @@ class _ScoreChartScreenState extends State<ScoreChartScreen> {
                             ),
                           ),
                           
-                          // Legend for selected parameters - moved inside the Column
+                          // 選択されたパラメータの凡例 - Columnの内側に移動
                           Padding(
                             padding: const EdgeInsets.only(top: 8, bottom: 8),
                             child: Wrap(
@@ -390,6 +390,7 @@ class _ScoreChartScreenState extends State<ScoreChartScreen> {
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
+                                          // Use the Japanese name from parameterMapping
                                           parameterMapping[param] ?? param,
                                           style: const TextStyle(fontSize: 12),
                                         ),
@@ -426,7 +427,7 @@ class _ScoreChartScreenState extends State<ScoreChartScreen> {
       case 'skin age':
         return Colors.red;
       default:
-        // Generate a consistent color based on parameter name
+        // パラメータ名に基づいて一貫した色を生成
         final hash = parameter.hashCode;
         return Colors.primaries[hash % Colors.primaries.length];
     }
