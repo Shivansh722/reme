@@ -360,12 +360,7 @@ class _DetailedAnalysisScreenState extends State<DetailedAnalysisScreen> {
                             Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const SizedBox(height: 32),
-                                const Text(
-                                  'スコア推移',
-                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 16),
+
                                 SizedBox(
                                   height: 350, // Increased height for better visibility
                                   child: ScoreChartScreen(),
