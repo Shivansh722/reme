@@ -214,7 +214,8 @@ class _AnalysisResultsScreenState extends State<AnalysisResultsScreen> {
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text: '${scores['skin age'] ?? 0}',
+                              // Change this line to subtract from 100
+                              text: '${100 - (scores['skin age'] ?? 0)}',
                               style: TextStyle(
                                 fontSize: 48,
                                 fontWeight: FontWeight.bold,

@@ -159,7 +159,7 @@ class _DetailedAnalysisScreenState extends State<DetailedAnalysisScreen> {
                             SkinAgeHistoryChart(
                               historyEntries: _historyEntries,
                               showTitle: true,
-                              maxEntries: 5,
+                              maxEntries: 3,  // Changed from
                             )
                           // For first-time users or non-logged in users, show radar chart
                           else
@@ -229,7 +229,8 @@ class _DetailedAnalysisScreenState extends State<DetailedAnalysisScreen> {
                                       text: TextSpan(
                                         children: [
                                           TextSpan(
-                                            text: '${scores['skin age'] ?? 0}',
+                                            // Change this line to subtract from 100
+                                            text: '${100 - (scores['skin age'] ?? 0)}',
                                             style: TextStyle(
                                               fontSize: 48,
                                               fontWeight: FontWeight.bold,

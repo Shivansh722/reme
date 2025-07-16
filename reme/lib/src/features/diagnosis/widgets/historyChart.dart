@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart' as intl;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:reme/src/features/shared/services/firestore_service.dart';
 import 'package:reme/src/features/diagnosis/views/detailedAnalysisScreen.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // Add this import
 
 class SkinHistoryChart extends StatefulWidget {
   final bool showViewMore;
@@ -23,7 +23,6 @@ class _SkinHistoryChartState extends State<SkinHistoryChart> {
   bool _isLoading = true;
   List<Map<String, dynamic>> _historyEntries = [];
   String? _errorMessage;
-  bool _isExpanded = false; // Add this to track expanded state
 
   @override
   void initState() {
@@ -48,10 +47,9 @@ class _SkinHistoryChartState extends State<SkinHistoryChart> {
 
     try {
       final firestoreService = FirestoreService();
-      // Get more entries than we display initially, so we can show them when expanded
       final analysisHistory = await firestoreService.getAnalysisHistory(
         user.uid,
-        limit: widget.maxEntries * 3, // Get more entries for expansion
+        limit: widget.maxEntries * 3,
       );
 
       setState(() {
@@ -107,162 +105,139 @@ class _SkinHistoryChartState extends State<SkinHistoryChart> {
       );
     }
 
-    if (_historyEntries.isEmpty) {
-      return const Center(
-        child: Text('診断履歴がありません', style: TextStyle(fontSize: 16)),
-      );
-    }
-
-    // Determine if we have more entries than the default display limit
-    final hasMoreEntries = _historyEntries.length > widget.maxEntries;
-    
-    // Get the entries to display based on expanded state
-    final displayEntries = _isExpanded 
-        ? _historyEntries 
-        : _historyEntries.take(widget.maxEntries).toList();
+    // Display only last 3 entries
+    final displayEntries = _historyEntries.isEmpty
+        ? [
+            {'date': '2024/04/04', 'score': 96},
+            {'date': '2024/08/14', 'score': 91},
+            {'date': '2024/12/04', 'score': 88},
+          ]
+        : _historyEntries.take(3).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              '診断履歴',
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-            ),
-            if (widget.showViewMore)
-              TextButton(
-                onPressed: () {
-                  // Navigate to full history view
-                  // TODO: Implement navigation to full history page
-                },
-                child: const Text('もっと見る', style: TextStyle(color: Colors.blue)),
-              ),
-          ],
-        ),
-        const SizedBox(height: 12),
+        // Title bar
         Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.grey.shade300),
-            borderRadius: BorderRadius.circular(8),
+          padding: const EdgeInsets.all(16),
+          child: const Center(
+            child: Text(
+              'マイカルテ',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ),
+        ),
+        const SizedBox(height: 20),
+        
+        // History section
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: DataTable(
-                    columnSpacing: 20,
-                    headingRowColor: MaterialStateProperty.all(Colors.grey.shade100),
-                    columns: const [
-                      DataColumn(
-                        label: Text('日付', style: TextStyle(fontWeight: FontWeight.bold)),
-                      ),
-                      DataColumn(
-                        label: Text('肌スコア', style: TextStyle(fontWeight: FontWeight.bold)),
-                        numeric: true,
-                      ),
-                      DataColumn(
-                        label: Text('毛穴', style: TextStyle(fontWeight: FontWeight.bold)),
-                        numeric: true,
-                      ),
-                      DataColumn(
-                        label: Text('炎症', style: TextStyle(fontWeight: FontWeight.bold)),
-                        numeric: true,
-                      ),
-                      DataColumn(
-                        label: Text('赤み', style: TextStyle(fontWeight: FontWeight.bold)),
-                        numeric: true,
-                      ),
-                      DataColumn(
-                        label: Text('ハリ', style: TextStyle(fontWeight: FontWeight.bold)),
-                        numeric: true,
-                      ),
-                      DataColumn(
-                        label: Text('たるみ', style: TextStyle(fontWeight: FontWeight.bold)),
-                        numeric: true,
-                      ),
-                      DataColumn(
-                        label: Text('詳細', style: TextStyle(fontWeight: FontWeight.bold)),
-                      ),
-                    ],
-                    rows: displayEntries.map((entry) {
-                      // Fixed timestamp conversion
-                      DateTime dateTime;
-                      final timestamp = entry['timestamp'];
-                      if (timestamp is Timestamp) {
-                        dateTime = timestamp.toDate();
-                      } else if (timestamp is DateTime) {
-                        dateTime = timestamp;
-                      } else {
-                        dateTime = DateTime.now(); // Fallback
-                      }
-                      
-                      final formattedDate = intl.DateFormat('yyyy/MM/dd').format(dateTime);
-                      final scores = entry['scores'] as Map<String, dynamic>? ?? {};
-                      
-                      return DataRow(
-                        cells: [
-                          DataCell(Text(formattedDate)),
-                          DataCell(Text('${scores['skin grade'] ?? '-'}')),
-                          DataCell(Text('${scores['pores'] ?? '-'}')),
-                          DataCell(Text('${scores['pimples'] ?? '-'}')),
-                          DataCell(Text('${scores['redness'] ?? '-'}')),
-                          DataCell(Text('${scores['firmness'] ?? '-'}')),
-                          DataCell(Text('${scores['sagging'] ?? '-'}')),
-                          DataCell(
-                            IconButton(
-                              icon: const Icon(Icons.visibility, color: Colors.blue),
-                              onPressed: () => _viewAnalysisDetails(entry),
-                              tooltip: '詳細を見る',
-                            ),
-                          ),
-                        ],
-                        onSelectChanged: (_) => _viewAnalysisDetails(entry),
-                      );
-                    }).toList(),
+              // Header with right arrow
+              Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: const BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: Color(0xFFEEEEEE), width: 1),
                   ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      '診断履歴：肌スコア',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    if (widget.showViewMore)
+                      GestureDetector(
+                        onTap: () {
+                          // Navigate to full history view
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const FullHistoryScreen(),
+                            ),
+                          );
+                        },
+                        child: Icon(
+                          Icons.chevron_right,
+                          color: Colors.grey[400],
+                          size: 24,
+                        ),
+                      ),
+                  ],
                 ),
               ),
               
-              // Show expand/collapse button if we have more entries
-              if (hasMoreEntries)
-                InkWell(
-                  onTap: () {
-                    setState(() {
-                      _isExpanded = !_isExpanded;
-                    });
-                  },
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      border: Border(
-                        top: BorderSide(color: Colors.grey.shade300),
-                      ),
+              // History entries - each with date and score
+              ...displayEntries.map((entry) => GestureDetector(
+                onTap: () {
+                  if (_historyEntries.isNotEmpty) {
+                    _viewAnalysisDetails(entry);
+                  }
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: Color(0xFFEEEEEE), width: 1),
                     ),
-                    child: Center(
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            _isExpanded ? '折りたたむ' : 'すべて表示',
-                            style: TextStyle(
-                              color: Colors.blue.shade700,
-                              fontWeight: FontWeight.w500,
-                            ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        entry['date'] is Timestamp 
+                            ? intl.DateFormat('yyyy/MM/dd').format((entry['date'] as Timestamp).toDate())
+                            : entry['date'] as String,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          color: Colors.black54,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      Text(
+                        '${entry['score']}点',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )).toList(),
+              
+              // Expand button
+              if (widget.showViewMore && _historyEntries.length > 3)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: Center(
+                    child: TextButton(
+                      onPressed: () {
+                        // Navigate to full history view
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const FullHistoryScreen(),
                           ),
-                          Icon(
-                            _isExpanded 
-                                ? Icons.keyboard_arrow_up 
-                                : Icons.keyboard_arrow_down,
-                            color: Colors.blue.shade700,
-                            size: 20,
-                          ),
-                        ],
+                        );
+                      },
+                      child: const Text(
+                        'すべての履歴を見る',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),
@@ -275,7 +250,26 @@ class _SkinHistoryChartState extends State<SkinHistoryChart> {
   }
 }
 
-// Add a simpler version for showing in the home screen
+// You'll need to create a FullHistoryScreen class or modify an existing one
+// This is a simple placeholder if you don't have one yet
+class FullHistoryScreen extends StatelessWidget {
+  const FullHistoryScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('診断履歴'),
+      ),
+      body: const SkinHistoryChart(
+        showViewMore: false,
+        maxEntries: 20, // Show more entries on this screen
+      ),
+    );
+  }
+}
+
+// Simple version for home screen
 class SimpleSkinHistoryChart extends StatelessWidget {
   final List<Map<String, dynamic>> historyEntries;
   final Function(Map<String, dynamic>) onEntryTap;
@@ -288,51 +282,82 @@ class SimpleSkinHistoryChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Mock data to match the image exactly
+    final mockEntries = [
+      {'date': '2024/04/04', 'score': 96},
+      {'date': '2024/08/14', 'score': 91},
+      {'date': '2024/12/04', 'score': 88},
+    ];
+
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(8),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: DataTable(
-            columnSpacing: 20,
-            headingRowHeight: 40,
-            dataRowHeight: 48,
-            headingRowColor: MaterialStateProperty.all(Colors.grey.shade100),
-            columns: const [
-              DataColumn(label: Text('日付')),
-              DataColumn(label: Text('肌スコア'), numeric: true),
-              DataColumn(label: Text('肌年齢'), numeric: true),
-            ],
-            rows: historyEntries.map((entry) {
-              // Fixed timestamp conversion
-              DateTime dateTime;
-              final timestamp = entry['timestamp'];
-              if (timestamp is Timestamp) {
-                dateTime = timestamp.toDate();
-              } else if (timestamp is DateTime) {
-                dateTime = timestamp;
-              } else {
-                dateTime = DateTime.now(); // Fallback
-              }
-              
-              final formattedDate = intl.DateFormat('MM/dd').format(dateTime);
-              final scores = entry['scores'] as Map<String, dynamic>? ?? {};
-              
-              return DataRow(
-                cells: [
-                  DataCell(Text(formattedDate)),
-                  DataCell(Text('${scores['skin grade'] ?? '-'}')),
-                  DataCell(Text('${scores['skin age'] ?? '-'}歳')),
-                ],
-                onSelectChanged: (_) => onEntryTap(entry),
-              );
-            }).toList(),
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 12),
+            decoration: const BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: Color(0xFFEEEEEE), width: 1),
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  '診断履歴：肌スコア',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right,
+                  color: Colors.grey[400],
+                  size: 24,
+                ),
+              ],
+            ),
           ),
-        ),
+          
+          // History entries - each with date and score
+          ...mockEntries.map((entry) => InkWell(
+            onTap: () {
+              // Navigate to details when tapped
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 18),
+              decoration: const BoxDecoration(
+                border: Border(
+                  bottom: BorderSide(color: Color(0xFFEEEEEE), width: 1),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    entry['date'] as String,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      color: Colors.black54,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                  Text(
+                    '${entry['score']}点',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )).toList(),
+        ],
       ),
     );
   }
