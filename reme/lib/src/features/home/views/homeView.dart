@@ -97,6 +97,9 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
   List<Map<String, dynamic>> _historyEntries = [];
   String? _errorMessage;
 
+  // Add this to the _DiagnosisScreenState class
+  List<bool> _checklistStatuses = [false, true, false]; // Initial states matching your original list
+
   @override
   void initState() {
     super.initState();
@@ -369,9 +372,10 @@ Container(
                 Text('やることリスト', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 SizedBox(height: 8),
 
-                checklistItem(false, '目標に対するタスクが入ります。目標に対するタスクがあります。'),
-                checklistItem(true, '目標に対するタスクが入ります。目標に対するタスクがあります。'),
-                checklistItem(false, '目標に対するタスクが入ります。目標に対するタスクがあります。'),
+                // Replace the original checklistItem calls with interactive ones
+                _buildInteractiveChecklistItem(0, '目標に対するタスクが入ります。目標に対するタスクがあります。'),
+                _buildInteractiveChecklistItem(1, '目標に対するタスクが入ります。目標に対するタスクがあります。'),
+                _buildInteractiveChecklistItem(2, '目標に対するタスクが入ります。目標に対するタスクがあります。'),
               ],
             ),
           ),
@@ -400,6 +404,27 @@ Container(
           SizedBox(height: 24),
         ],
       ),
+    );
+  }
+
+  Widget _buildInteractiveChecklistItem(int index, String text) {
+    return CheckboxListTile(
+      value: _checklistStatuses[index],
+      onChanged: (bool? newValue) {
+        setState(() {
+          _checklistStatuses[index] = newValue ?? false;
+        });
+      },
+      title: Text(
+        text,
+        style: TextStyle(
+          color: Colors.black87,
+          decoration: _checklistStatuses[index] ? TextDecoration.lineThrough : null,
+        ),
+      ),
+      controlAffinity: ListTileControlAffinity.leading,
+      contentPadding: EdgeInsets.zero,
+      dense: true,
     );
   }
 }
