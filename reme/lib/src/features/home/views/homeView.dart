@@ -339,7 +339,7 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
 
           SizedBox(height: 24),
           
-          Container(
+Container(
             padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.pink[50]?.withOpacity(0.5),
@@ -348,11 +348,12 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('パーソナライズされたケアガイド', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+
+                Text('理想の肌', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
 
                 SizedBox(height: 8),
 
-                Text('乾燥肌を改善する方法', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text('乾燥肌を改善したい', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
 
                 SizedBox(height: 2),
 
@@ -365,14 +366,12 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
 
                 SizedBox(height: 2),
 
-                Text('スキンケアのステップ', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                Text('やることリスト', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                 SizedBox(height: 8),
 
-                Text('1. 朝：ぬるま湯で優しく洗顔し、化粧水と保湿クリームを使用。日焼け止めも忘れずに。'),
-                SizedBox(height: 8),
-                Text('2. 夜：メイクをしっかり落とし、洗顔後すぐに化粧水をたっぷりと。美容液と保湿クリームで仕上げる。'),
-                SizedBox(height: 8),
-                Text('3. 週2回：優しい角質ケアを行い、肌のターンオーバーを促進する。'),
+                checklistItem(false, '目標に対するタスクが入ります。目標に対するタスクがあります。'),
+                checklistItem(true, '目標に対するタスクが入ります。目標に対するタスクがあります。'),
+                checklistItem(false, '目標に対するタスクが入ります。目標に対するタスクがあります。'),
               ],
             ),
           ),
