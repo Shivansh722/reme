@@ -54,6 +54,7 @@ dependencies:
   cloud_firestore: ^5.6.11
   intl: ^0.20.2
   dropdown_button2: ^2.3.9
+  csv: 
 
 dev_dependencies:
   flutter_test:
