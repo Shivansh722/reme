@@ -55,6 +55,7 @@ dependencies:
   intl: ^0.20.2
   dropdown_button2: ^2.3.9
   csv: 
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:
@@ -82,7 +83,7 @@ flutter:
   assets:
     - lib/assets/images/
     - .env
-  #   - images/a_dot_ham.jpeg
+    - assets/data/  # Add this line to include all files in the assets/data directory
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
