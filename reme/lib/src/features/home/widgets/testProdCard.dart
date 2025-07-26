@@ -1,6 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:csv/csv.dart';
 
 class ProductRecommendationCard extends StatefulWidget {
   final Map<String, int>? skinScores;
@@ -15,16 +19,123 @@ class ProductRecommendationCard extends StatefulWidget {
 }
 
 class _ProductRecommendationCardState extends State<ProductRecommendationCard> {
-  bool _isLoading = false;
+  bool _isLoading = true;
   List<Map<String, dynamic>> _products = [];
+  String _errorMessage = '';
 
   @override
   void initState() {
     super.initState();
-    // Load mock data instead of CSV file
-    _loadMockProducts();
+    // Load products from Firestore
+    _loadProductsFromFirestore();
   }
 
+  Future<void> _loadProductsFromFirestore() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = '';
+      });
+
+      // Check if products collection exists in Firestore
+      final productsCollection = FirebaseFirestore.instance.collection('products');
+      final snapshot = await productsCollection.limit(1).get();
+      
+      if (snapshot.docs.isEmpty) {
+        // No products in Firestore yet, upload CSV data
+        await _uploadCsvToFirestore();
+      }
+      
+      // Now fetch products from Firestore
+      final productsSnapshot = await productsCollection.get();
+      final List<Map<String, dynamic>> loadedProducts = [];
+      
+      for (var doc in productsSnapshot.docs) {
+        loadedProducts.add(doc.data());
+      }
+      
+      setState(() {
+        _products = loadedProducts;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Error loading products: $e';
+        _isLoading = false;
+      });
+      print('Error: $e');
+      
+      // Fall back to mock data if there's an error
+      _loadMockProducts();
+    }
+  }
+
+  Future<void> _uploadCsvToFirestore() async {
+    try {
+      // Load CSV file from assets
+      print('Starting CSV upload...');
+      final String csvData = await rootBundle.loadString('assets/data/LIPS.csv');
+      print('CSV file loaded, size: ${csvData.length} bytes');
+      
+      // Debug first few characters to see the format
+      print('CSV first 100 chars: ${csvData.substring(0, 100)}');
+      
+      // Parse CSV with proper configuration
+      List<List<dynamic>> csvTable = const CsvToListConverter(
+        shouldParseNumbers: false,  // Prevent parsing numbers to keep as strings
+        fieldDelimiter: ',',        // Make sure comma is used as delimiter
+        eol: '\n',                  // Set explicit end of line character
+      ).convert(csvData);
+      
+      print('CSV parsed, rows: ${csvTable.length}');
+      
+      // Debug first few rows
+      for (int i = 0; i < min(3, csvTable.length); i++) {
+        print('Row $i: ${csvTable[i]}');
+      }
+      
+      // Extract headers (first row)
+      List<String> headers = csvTable[0].map((item) => item.toString()).toList();
+      print('Headers: ${headers.join(", ")}');
+      
+      // Batch write for better performance
+      WriteBatch batch = FirebaseFirestore.instance.batch();
+      final productsCollection = FirebaseFirestore.instance.collection('products');
+      
+      int count = 0;
+      // Convert rows to documents (starting from second row)
+      for (int i = 1; i < csvTable.length; i++) {
+        if (csvTable[i].isEmpty || csvTable[i].length < 3) continue; // Skip empty or incomplete rows
+        count++;
+        
+        Map<String, dynamic> product = {};
+        
+        // Create a document with fields from CSV
+        for (int j = 0; j < headers.length && j < csvTable[i].length; j++) {
+          product[headers[j]] = csvTable[i][j].toString();
+        }
+        
+        // Debug the product data
+        if (count <= 2) {
+          print('Product $count: $product');
+        }
+        
+        // Add document to batch
+        final docRef = productsCollection.doc();
+        batch.set(docRef, product);
+      }
+      
+      print('About to commit $count products to Firestore');
+      // Commit the batch
+      await batch.commit();
+      print('CSV data uploaded to Firestore successfully');
+    } catch (e) {
+      print('Error uploading CSV to Firestore: $e');
+      throw e; // Rethrow to handle in the calling function
+    }
+  }
+
+  // Fallback to mock data if Firestore fails
   void _loadMockProducts() {
     // Mock data based on your CSV structure
     _products = [
@@ -74,15 +185,33 @@ class _ProductRecommendationCardState extends State<ProductRecommendationCard> {
     });
   }
 
-  // You can add a method to load the CSV file when asset setup is complete
-  // Future<void> _loadCsvData() async {
-  //   try {
-  //     final String data = await rootBundle.loadString('assets/data/LIPS.csv');
-  //     // ... rest of your CSV loading code
-  //   } catch (e) {
-  //     print('Error loading CSV: $e');
-  //   }
-  // }
+  // Add a button to manually trigger CSV upload (useful for admin/testing)
+  Future<void> _manuallyUploadCsv() async {
+    try {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = '';
+      });
+      
+      await _uploadCsvToFirestore();
+      
+      // Refresh products from Firestore
+      await _loadProductsFromFirestore();
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('CSV uploaded to Firestore successfully!')),
+      );
+    } catch (e) {
+      setState(() {
+        _errorMessage = 'Error uploading CSV: $e';
+        _isLoading = false;
+      });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
+  }
 
   List<Map<String, dynamic>> _getRecommendedProducts() {
     if (_products.isEmpty) return [];
@@ -150,16 +279,43 @@ class _ProductRecommendationCardState extends State<ProductRecommendationCard> {
       return const Center(child: CircularProgressIndicator());
     }
     
+    if (_errorMessage.isNotEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(_errorMessage, textAlign: TextAlign.center),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: _loadProductsFromFirestore,
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+    
     List<Map<String, dynamic>> recommendedProducts = _getRecommendedProducts();
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Text(
-            'おすすめ製品',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'おすすめ製品',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              // Uncomment for admin functionality
+              IconButton(
+                icon: const Icon(Icons.upload_file),
+                onPressed: _manuallyUploadCsv,
+                tooltip: 'Upload CSV to Firestore',
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 8),
@@ -217,16 +373,6 @@ class ProductCard extends StatelessWidget {
     Key? key,
     required this.product,
   }) : super(key: key);
-  
-  // Check if a URL is accessible
-  Future<bool> _isImageAvailable(String url) async {
-    try {
-      final response = await http.head(Uri.parse(url));
-      return response.statusCode >= 200 && response.statusCode < 300;
-    } catch (e) {
-      return false;
-    }
-  }
   
   // Clean up the Cloudflare URL by removing parameters
   String _cleanImageUrl(String url) {
@@ -292,39 +438,19 @@ class ProductCard extends StatelessWidget {
                   ? Image.network(
                       imageUrl,
                       fit: BoxFit.cover,
-                      headers: {
-                        'User-Agent': 'Mozilla/5.0',
-                        'Accept': 'image/webp,image/*,*/*;q=0.8',
-                      },
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: CircularProgressIndicator(
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded / 
-                                    loadingProgress.expectedTotalBytes!
-                                : null,
-                          ),
-                        );
-                      },
                       errorBuilder: (context, error, stackTrace) {
-                        print('Error loading image: $error');
-                        // Fallback image
+                        print('Error loading image from $imageUrl: $error');
                         return Container(
                           color: Colors.grey[100],
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Icon(Icons.image_not_supported, 
-                                   color: Colors.grey[400], size: 40),
+                              Icon(Icons.image_not_supported, color: Colors.grey[400], size: 40),
                               const SizedBox(height: 8),
                               Text(
                                 title,
                                 textAlign: TextAlign.center,
-                                style: TextStyle(
-                                  color: Colors.grey[600],
-                                  fontSize: 12,
-                                ),
+                                style: TextStyle(color: Colors.grey[600], fontSize: 12),
                               ),
                             ],
                           ),

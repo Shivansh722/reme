@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_line_sdk/flutter_line_sdk.dart';
 import 'package:reme/core/theme/light_mode.dart';
@@ -11,6 +12,7 @@ import 'package:reme/src/features/diagnosis/views/analysisHistoryScreen.dart';
 import 'package:reme/src/features/diagnosis/views/analysisResultsScreen.dart';
 import 'package:reme/src/features/diagnosis/views/custom_camera_screen.dart';
 import 'package:reme/src/features/home/views/homeView.dart';
+import 'package:reme/src/features/home/widgets/testProdCard.dart';
 import 'package:reme/src/features/profile/view/profileView.dart';
 import 'package:reme/src/features/shared/radiusChart.dart';
 import 'package:reme/src/features/splashView.dart'; // Add this import
@@ -42,7 +44,23 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false, 
       title: 'Flutter Demo',
       theme: lightMode,
-      home:  HomeviewMain(), // Use Splashview as the initial screen
+      home: Scaffold(
+        appBar: AppBar(
+          title: const Text('Product Recommendations'),
+        ),
+        body: const ProductRecommendationCard(),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            // Show Firebase connection status
+            FirebaseFirestore.instance
+                .collection('debug')
+                .add({'timestamp': FieldValue.serverTimestamp()})
+                .then((_) => print('Firebase connection works!'))
+                .catchError((e) => print('Firebase error: $e'));
+          },
+          child: const Icon(Icons.bug_report),
+        ),
+      ),
     );
   }
 }
