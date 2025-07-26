@@ -222,9 +222,14 @@ class ProductCard extends StatelessWidget {
   
   // Clean up the Cloudflare URL by removing parameters
   String _cleanImageUrl(String url) {
-    // Remove query parameters that might be causing issues
-    final uri = Uri.parse(url);
-    return uri.origin + uri.path;
+    try {
+      // Remove query parameters that might be causing issues
+      final uri = Uri.parse(url);
+      return uri.origin + uri.path;
+    } catch (e) {
+      print('Error parsing URL $url: $e');
+      return url; // Return original URL if parsing fails
+    }
   }
   
   @override
@@ -235,17 +240,14 @@ class ProductCard extends StatelessWidget {
       imageUrl = _cleanImageUrl(product.imageUrl);
     }
     
+    // Extract price from details if available
+    String price = product.price.isNotEmpty ? product.price : '価格情報なし';
+    
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.grey[50], // Light grey background as requested
         borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        // No shadow as requested
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -268,10 +270,13 @@ class ProductCard extends StatelessWidget {
                             children: [
                               Icon(Icons.image_not_supported, color: Colors.grey[400], size: 40),
                               const SizedBox(height: 8),
-                              Text(
-                                product.name,
-                                textAlign: TextAlign.center,
-                                style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                child: Text(
+                                  product.name,
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                                ),
                               ),
                             ],
                           ),
@@ -280,53 +285,124 @@ class ProductCard extends StatelessWidget {
                     )
                   : Container(
                       color: Colors.grey[200],
-                      child: const Icon(Icons.image_not_supported),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.image_not_supported, color: Colors.grey[400], size: 40),
+                          const SizedBox(height: 8),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                            child: Text(
+                              '画像なし',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
             ),
           ),
           
           // Product info
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(12.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Brand
                 Text(
-                  product.brand,
+                  product.brand.isNotEmpty ? product.brand : 'ブランド不明',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey[600],
+                    color: Colors.grey[700],
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
+                
+                // Product Name
                 Text(
-                  product.name,
+                  product.name.isNotEmpty ? product.name : '商品名不明',
                   style: const TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
+                    height: 1.3,
                   ),
-                  maxLines: 1,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
+                
+                // Category
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    product.category.isNotEmpty ? product.category : 'カテゴリ未設定',
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                
+                // Description
                 Text(
-                  product.description,
-                  style: const TextStyle(
+                  product.description.isNotEmpty ? product.description : '詳細情報なし',
+                  style: TextStyle(
                     fontSize: 12,
-                    color: Colors.black87,
+                    color: Colors.grey[800],
+                    height: 1.4,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 const SizedBox(height: 8),
+                
+                // Price
                 Text(
-                  product.price,
+                  price,
                   style: const TextStyle(
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black,
+                    color: Colors.black87,
                   ),
                 ),
+                
+                // Tags
+                if (product.tags.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Wrap(
+                      spacing: 4,
+                      runSpacing: 4,
+                      children: product.tags.split(',')
+                          .map((tag) => tag.trim())
+                          .where((tag) => tag.isNotEmpty)
+                          .take(3) // Show only first 3 tags
+                          .map((tag) => Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue[50],
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: Colors.blue[100]!),
+                                ),
+                                child: Text(
+                                  tag,
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    color: Colors.blue[800],
+                                  ),
+                                ),
+                              ))
+                          .toList(),
+                    ),
+                  ),
               ],
             ),
           ),
