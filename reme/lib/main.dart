@@ -12,7 +12,7 @@ import 'package:reme/src/features/diagnosis/views/analysisHistoryScreen.dart';
 import 'package:reme/src/features/diagnosis/views/analysisResultsScreen.dart';
 import 'package:reme/src/features/diagnosis/views/custom_camera_screen.dart';
 import 'package:reme/src/features/home/views/homeView.dart';
-import 'package:reme/src/features/home/widgets/testProdCard.dart';
+import 'package:reme/src/features/home/widgets/product_card.dart';
 import 'package:reme/src/features/profile/view/profileView.dart';
 import 'package:reme/src/features/shared/radiusChart.dart';
 import 'package:reme/src/features/splashView.dart'; // Add this import
