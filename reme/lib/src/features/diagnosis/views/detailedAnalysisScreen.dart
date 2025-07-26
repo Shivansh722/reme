@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:reme/src/features/diagnosis/widgets/circularProg.dart';
 import 'package:reme/src/features/diagnosis/widgets/historyChart.dart';
 import 'package:reme/src/features/diagnosis/widgets/skinAgeHistoryChart.dart'; // Add this import
+import 'package:reme/src/features/home/widgets/product_card.dart';
 import 'package:reme/src/features/home/widgets/recommendedCard.dart';
 import 'package:reme/src/features/shared/radiusChart.dart';
 import 'package:reme/src/features/shared/services/firestore_service.dart';
@@ -379,44 +380,8 @@ class _DetailedAnalysisScreenState extends State<DetailedAnalysisScreen> {
                               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 16),
-                              Row(
-                              children: [
-                                Expanded(
-                                child: ProductCard(
-                                  title: '母袋有機農場シリーズ...',
-                                  description: '栄養豊富なヘチマ水がすっと浸透、繊細な肌を包み込み',
-                                  price: '¥1,234(税込)',
-                                ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                child: ProductCard(
-                                  title: '母袋有機農場シリーズ...',
-                                  description: '栄養豊富なヘチマ水がすっと浸透、繊細な肌を包み込み',
-                                  price: '¥1,234(税込)',
-                                ),
-                                ),
-                              ],
-                              ),
-                              const SizedBox(height: 16),
-                              Row(
-                              children: [
-                                Expanded(
-                                child: ProductCard(
-                                  title: '保湿美容液...',
-                                  description: 'セラミド配合で乾燥肌を集中的にケア、バリア機能を強化',
-                                  price: '¥2,980(税込)',
-                                ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                child: ProductCard(
-                                  title: 'ビタミンC美容液...',
-                                  description: '高濃度ビタミンCがくすみを改善し、明るい肌へ導きます',
-                                  price: '¥3,500(税込)',
-                                ),
-                                ),
-                              ],
+                              ProductRecommendationCard(
+                                skinScores: scores,
                               ),
                             ],
                           ),
