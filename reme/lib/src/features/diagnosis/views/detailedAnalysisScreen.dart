@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:reme/src/features/diagnosis/widgets/analysisBasedRecommendations.dart';
 import 'package:reme/src/features/diagnosis/widgets/circularProg.dart';
 import 'package:reme/src/features/diagnosis/widgets/historyChart.dart';
 import 'package:reme/src/features/diagnosis/widgets/skinAgeHistoryChart.dart'; // Add this import
@@ -380,9 +381,8 @@ class _DetailedAnalysisScreenState extends State<DetailedAnalysisScreen> {
                               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                               ),
                               const SizedBox(height: 16),
-                              ProductRecommendationCard(
-                                skinScores: scores,
-                              ),
+                              // Custom implementation that shows exactly 4 products
+                              AnalysisBasedRecommendations(skinScores: scores),
                             ],
                           ),
 
@@ -506,3 +506,5 @@ class _DetailedAnalysisScreenState extends State<DetailedAnalysisScreen> {
     }
   }
 }
+
+// Custom widget to display recommended products based on analysis
