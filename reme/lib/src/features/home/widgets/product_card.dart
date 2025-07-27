@@ -375,34 +375,34 @@ class ProductCard extends StatelessWidget {
                 ),
                 
                 // Tags
-                if (product.tags.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 8.0),
-                    child: Wrap(
-                      spacing: 4,
-                      runSpacing: 4,
-                      children: product.tags.split(',')
-                          .map((tag) => tag.trim())
-                          .where((tag) => tag.isNotEmpty)
-                          .take(3) // Show only first 3 tags
-                          .map((tag) => Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: Colors.blue[50],
-                                  borderRadius: BorderRadius.circular(4),
-                                  border: Border.all(color: Colors.blue[100]!),
-                                ),
-                                child: Text(
-                                  tag,
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    color: Colors.blue[800],
-                                  ),
-                                ),
-                              ))
-                          .toList(),
-                    ),
-                  ),
+                // if (product.tags.isNotEmpty)
+                //   Padding(
+                //     padding: const EdgeInsets.only(top: 8.0),
+                //     child: Wrap(
+                //       spacing: 4,
+                //       runSpacing: 4,
+                //       children: product.tags.split(',')
+                //           .map((tag) => tag.trim())
+                //           .where((tag) => tag.isNotEmpty)
+                //           .take(3) // Show only first 3 tags
+                //           .map((tag) => Container(
+                //                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                //                 decoration: BoxDecoration(
+                //                   color: Colors.blue[50],
+                //                   borderRadius: BorderRadius.circular(4),
+                //                   border: Border.all(color: Colors.blue[100]!),
+                //                 ),
+                //                 child: Text(
+                //                   tag,
+                //                   style: TextStyle(
+                //                     fontSize: 9,
+                //                     color: Colors.blue[800],
+                //                   ),
+                //                 ),
+                //               ))
+                //           .toList(),
+                //     ),
+                //   ),
               ],
             ),
           ),

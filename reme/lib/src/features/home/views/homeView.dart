@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:reme/src/features/diagnosis/widgets/analysisBasedRecommendations.dart';
 import 'package:reme/src/features/home/widgets/recommendedCard.dart';
 import 'package:reme/src/features/shared/Widgets/bottom_nav_bar.dart';
 import 'package:reme/src/features/diagnosis/views/custom_camera_screen.dart';
@@ -100,6 +102,18 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
   // Add this to the _DiagnosisScreenState class
   List<bool> _checklistStatuses = [false, true, false]; // Initial states matching your original list
 
+  // Add this scores map (use real data if available)
+  final Map<String, int> scores = {
+    'pores': 75,
+    'pimples': 85,
+    'redness': 65,
+    'firmness': 80,
+    'sagging': 88,
+    'skin grade': 78,
+    'skin age': 58,
+    'dark spots': 70,
+  };
+
   @override
   void initState() {
     super.initState();
@@ -166,6 +180,8 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Add this line to define scores locally
+
     return SingleChildScrollView(
       padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       child: Column(
@@ -198,35 +214,35 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
                         Text('肌スコア'),
                         RichText(
                           text: TextSpan(
-                          children: [
-                            TextSpan(
-                            text: '86',
-                            style: TextStyle(
-                              fontSize: 48,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black,
-                            ),
-                            ),
-                            TextSpan(
-                            text: '/100',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey,
-                            ),
-                            ),
-                          ],
+                            children: [
+                              TextSpan(
+                                text: '${scores['skin grade'] ?? 0}',
+                                style: TextStyle(
+                                  fontSize: 48,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black,
+                                ),
+                              ),
+                              TextSpan(
+                                text: '/100',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ],
                     ),
                   ),
-                  
+      
                   Container(
                     height: 60,
                     width: 1,
                     color: Colors.grey[300],
                   ),
-                  
+      
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -236,7 +252,8 @@ class _DiagnosisScreenState extends State<DiagnosisScreen> {
                           text: TextSpan(
                             children: [
                               TextSpan(
-                                text: '42',
+                                // Change this line to subtract from 100
+                                text: '${100 - (scores['skin age'] ?? 0)}',
                                 style: TextStyle(
                                   fontSize: 48,
                                   fontWeight: FontWeight.bold,
@@ -385,22 +402,7 @@ Container(
           Text('おすすめ商品',
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
           SizedBox(height: 16),
-           Row(
-             children: [
-               ProductCard(
-                 title: '母袋有機農場シリーズ...',
-                 description: '栄養豊富なヘチマ水がすっと浸透、繊細な肌を包み込み',
-                 price: '¥1,234(税込)',
-               ),
-              SizedBox(width: 8),
-              ProductCard(
-                title: '母袋有機農場シリーズ...',
-                description: '栄養豊富なヘチマ水がすっと浸透、繊細な肌を包み込み',
-                price: '¥1,234(税込)',
-              ),
-             ],
-           ),
-
+          AnalysisBasedRecommendations(skinScores: scores),
           SizedBox(height: 24),
         ],
       ),
