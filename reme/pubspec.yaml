@@ -40,10 +40,22 @@ dependencies:
   flutter_line_sdk: ^2.5.2
   permission_handler: ^12.0.0+1
   image_picker: ^1.1.2
-  google_mlkit_face_detection: ^0.13.1
+  google_mlkit_face_detection: 
+  google_mlkit_commons: 
   path_provider: ^2.1.5
   image: ^4.5.4
   flutter_dotenv: ^5.2.1
+  camera:
+  http: ^1.4.0
+  fl_chart: ^1.0.0
+  photo_manager: ^3.7.1
+  shared_preferences: ^2.5.3
+  google_generative_ai: ^0.4.7
+  cloud_firestore: ^5.6.11
+  intl: ^0.20.2
+  dropdown_button2: ^2.3.9
+  csv: 
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:
@@ -71,7 +83,7 @@ flutter:
   assets:
     - lib/assets/images/
     - .env
-  #   - images/a_dot_ham.jpeg
+    - assets/data/  # Add this line to include all files in the assets/data directory
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
