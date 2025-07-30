@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:reme/src/features/auth/Views/authView.dart';
 import 'package:reme/src/features/diagnosis/views/detailedAnalysisScreen.dart';
+import 'package:reme/src/features/diagnosis/widgets/analysisBasedRecommendations.dart';
 import 'package:reme/src/features/home/views/homeView.dart';
 import 'package:reme/src/features/home/widgets/recommendedCard.dart';
 import 'package:reme/src/widgets/customButton.dart';
@@ -269,22 +270,7 @@ class _AnalysisResultsScreenState extends State<AnalysisResultsScreen> {
             ),
             const SizedBox(height: 16),
 
-             Row(
-             children: [
-               ProductCard(
-                 title: '母袋有機農場シリーズ...',
-                 description: '栄養豊富なヘチマ水がすっと浸透、繊細な肌を包み込み',
-                 price: '¥1,234(税込)',
-               ),
-              SizedBox(width: 8),
-
-               ProductCard(
-                 title: '母袋有機農場シリーズ...',
-                 description: '栄養豊富なヘチマ水がすっと浸透、繊細な肌を包み込み',
-                 price: '¥1,234(税込)',
-               ),
-             ],
-           ),
+             AnalysisBasedRecommendations(skinScores: scores),
 
             const SizedBox(height: 16),
 
@@ -334,12 +320,12 @@ class _AnalysisResultsScreenState extends State<AnalysisResultsScreen> {
             const SizedBox(height: 16),
             
             // Test button for Firestore
-            Center(
-              child: ElevatedButton(
-                onPressed: testFirestoreSave,
-                child: Text('Test Firestore Save'),
-              ),
-            ),
+            // Center(
+            //   child: ElevatedButton(
+            //     onPressed: testFirestoreSave,
+            //     child: Text('Test Firestore Save'),
+            //   ),
+            // ),
           ],
         ),
       ),

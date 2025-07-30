@@ -5,6 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:image/image.dart' as img;
 import 'package:http/http.dart' as http;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class FaceAnalysisService {
   // Move the image processing methods from _CameraScreenState here
@@ -73,18 +74,7 @@ class FaceAnalysisService {
     return base64Encode(compressedBytes);
   }
 
-  Future<String> analyzeSkinWithGemini(String base64Image) async {
-    // Get API key from .env file
-    final apiKey = dotenv.env['GEMINI_API_KEY'];
-    
-    if (apiKey == null || apiKey.isEmpty) {
-      return 'Error: API key not found. Please check your environment configuration.';
-    }
-    
-    // Use the correct model name for Gemini 2.0 Flash
-    final url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$apiKey';
-
-    const prompt = """
+  static const String _defaultPrompt = """
 Analyze this face's skin. For each of the following categories, provide a short assessment and a NUMERICAL SCORE out of 100.
 
 1. Visible pimples or acne or spots (location and severity)
@@ -110,6 +100,30 @@ At the end, provide ONLY the following JSON object on a new line, and nothing el
 Where X is a number between 0 and 100 for each category. Do not use any words instead of numbers. Do not add any explanation after the JSON.
 """;
 
+  Future<String> _getOrCreatePromptFromFirestore() async {
+    final docRef = FirebaseFirestore.instance.collection('settings').doc('skin_analysis_prompt');
+    final doc = await docRef.get();
+    if (doc.exists && doc.data()?['prompt'] != null) {
+      return doc['prompt'] as String;
+    } else {
+      // Write default prompt to Firestore
+      await docRef.set({'prompt': _defaultPrompt});
+      return _defaultPrompt;
+    }
+  }
+
+  Future<String> analyzeSkinWithGemini(String base64Image) async {
+    final apiKey = dotenv.env['GEMINI_API_KEY'];
+    if (apiKey == null || apiKey.isEmpty) {
+      return 'Error: API key not found. Please check your environment configuration.';
+    }
+
+    final url = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=$apiKey';
+
+    final prompt = await _getOrCreatePromptFromFirestore();
+    print('Prompt: $prompt');
+    print('Base64 image length: ${base64Image.length}');
+    print('Requesting Gemini...');
     final response = await http.post(
       Uri.parse(url),
       headers: {"Content-Type": "application/json"},
@@ -134,18 +148,28 @@ Where X is a number between 0 and 100 for each category. Do not use any words in
         },
       }),
     );
+    print('Gemini API status: ${response.statusCode}');
+    print('Gemini API response: ${response.body}');
 
     if (response.statusCode == 200) {
       final result = jsonDecode(response.body);
-      // Check if the response structure is as expected
-      if (result.containsKey('candidates') && 
-          result['candidates'].isNotEmpty && 
-          result['candidates'][0].containsKey('content')) {
-        return result['candidates'][0]['content']['parts'][0]['text'];
-      } else {
-        // Handle unexpected response structure
+      // Try to extract the analysis text
+      try {
+        final candidates = result['candidates'];
+        if (candidates != null && candidates.isNotEmpty) {
+          final content = candidates[0]['content'];
+          if (content != null && content['parts'] != null && content['parts'].isNotEmpty) {
+            final text = content['parts'][0]['text'];
+            if (text != null && text.isNotEmpty) {
+              return text;
+            }
+          }
+        }
         print('Unexpected response structure: ${response.body}');
-        return 'Unable to analyze skin. Please try again.';
+        return 'Unable to analyze skin. Please try again. [No analysis text found]';
+      } catch (e) {
+        print('Error parsing Gemini response: $e\nBody: ${response.body}');
+        return 'Unable to analyze skin. Please try again. [Parsing error]';
       }
     } else if (response.statusCode == 400) {
       // Handle model-specific errors
